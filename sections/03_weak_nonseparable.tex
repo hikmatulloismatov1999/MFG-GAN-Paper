@@ -1,7 +1,7 @@
 \section{Weakly Non-Separable Hamiltonians}
 \label{sec:weak}
 
-\subsection{Definition and Examples}
+\subsection{Definition}
 
 \begin{definition}[Weakly Non-Separable Hamiltonian]
 \label{def:weak_nonsep}
@@ -11,19 +11,11 @@ A Hamiltonian $H : \Omega \times \R \times \R^d \to \R$ is called
   H(x,\rho,p) = \underbrace{H_0(x,p) - f_0(x,\rho)}_{\text{separable base}}
   + \eps\, \underbrace{R(x,\rho,p)}_{\text{coupling residual}},
 \end{equation}
-where:
-\begin{enumerate}
-  \item[(i)] $H_0 : \Omega \times \R^d \to \R$ is convex in $p$,
-  \item[(ii)] $f_0 : \Omega \times \R \to \R$ is monotone increasing in $\rho$
-    with constant $\lambda > 0$, i.e.,
-    $(f_0(x,\rho_1) - f_0(x,\rho_2))(\rho_1-\rho_2) \geq \lambda(\rho_1-\rho_2)^2$,
-  \item[(iii)] $R : \Omega \times \R \times \R^d \to \R$ is Lipschitz in $\rho$
-    with constant $L_R$, uniformly in $(x,p)$.
-\end{enumerate}
+where $H_0$ is convex in $p$, $f_0$ is monotone in $\rho$ with constant
+$\lambda > 0$, and $R$ is Lipschitz in $\rho$ with constant $L_R$,
+uniformly in $(x,p)$.
+The case $\eps = 0$ recovers a standard separable MFG.
 \end{definition}
-
-\noindent The separability limit $\eps = 0$ recovers standard separable MFGs
-(APAC-Net regime). The fully non-separable case corresponds to $\eps = 1$.
 
 \begin{definition}[GAN-Tractable Regime]
 \label{def:tractable}
@@ -34,15 +26,13 @@ A weakly non-separable Hamiltonian is in the \emph{GAN-tractable regime} if
 \end{definition}
 
 \begin{remark}
-Condition \eqref{eq:condition} quantifies the balance between
-the non-separable coupling strength ($\eps L_R$) and the
-restoring force of the monotone interaction ($\lambda$).
-It is analogous to a \emph{spectral gap} condition in fixed-point theory.
+Condition \eqref{eq:condition} balances coupling strength ($\eps L_R$)
+against the restoring force of the monotone interaction ($\lambda$).
+It is analogous to a spectral gap condition in the theory of contractive
+fixed-point iterations.
 \end{remark}
 
-\subsection{Classification of Coupling Residuals}
-
-We identify three practically important types of coupling:
+\subsection{Examples of Coupling Residuals}
 
 \begin{table}[h]
 \centering
@@ -52,56 +42,70 @@ Type & $R(x,\rho,p)$ & $L_R$ & Example \\
 \midrule
 Bilinear & $\rho \cdot p$ & $\norm{p}_\infty$ & Traffic flow (MFG-LWR) \\
 Quadratic & $\rho^2 \cdot \norm{p}^2$ & $2\rho_{\max}\norm{p}_\infty^2$ & Congestion games \\
-General Lipschitz & $R$ Lip. in $\rho$ & $L_R$ & Manufacturing flow \\
+General Lipschitz & Lipschitz in $\rho$ & $L_R$ & Mean field control \\
 \bottomrule
 \end{tabular}
-\caption{Types of coupling residuals and their Lipschitz constants.}
+\caption{Common coupling residuals and their Lipschitz constants in $\rho$.}
 \label{tab:coupling}
 \end{table}
 
 \subsection{The Traffic Flow Hamiltonian}
+\label{sec:traffic}
 
-The MFG-LWR traffic model \citep{huang2019mfg} has Hamiltonian
+The MFG-LWR traffic model \citep{huang2019mfg} is the canonical
+non-separable benchmark. Its Hamiltonian is
 \[
   H(x,\rho,p) = \tfrac{1}{2}\norm{p}^2 - (1-\rho)\,p.
 \]
-Using \eqref{eq:decomp} with $\eps = 1$:
-\begin{align*}
-  H_0(x,p) &= \tfrac{1}{2}\norm{p}^2 - p, \quad\quad
-  f_0(x,\rho) = 0, \quad\quad
-  R(x,\rho,p) = \rho\cdot p.
-\end{align*}
-Since $R$ is \emph{linear} in $\rho$, the Lipschitz constant is
-$L_R = \norm{p}_\infty \leq u_{\max} = 1$ (speeds are physically bounded).
+Using decomposition \eqref{eq:decomp} with $\eps = 1$:
+\[
+  H_0(x,p) = \tfrac{1}{2}\norm{p}^2 - p,
+  \qquad
+  R(x,\rho,p) = \rho\cdot p,
+  \qquad
+  f_0(x,\rho) = f_0(\rho).
+\]
+Since $R$ is linear in $\rho$, the Lipschitz constant is
+$L_R = \norm{p}_\infty \leq u_{\max}$ (speeds are physically bounded).
 
-\begin{remark}[Exact Linearization]
-For bilinear coupling $R = \rho\cdot p$, the linearization of $R$
-around any $\rho^k$ is exact (the residual is zero), which means the
-outer fixed-point iteration can in principle converge in fewer steps.
+\begin{remark}[Role of the interaction term]
+\label{rem:f0_traffic}
+The original MFG-LWR model of \citet{huang2019mfg} contains no explicit
+congestion interaction $f_0$ (congestion enters only through $R$).
+In this case $\lambda = 0$ and the GAN-tractable condition \eqref{eq:condition}
+is not directly satisfied.
+We handle this in two ways.
+First, one can add a small regularization $f_0(\rho) = \sigma\rho$ for
+$\sigma > 0$, which is physically natural (penalizing high density)
+and yields $\lambda = \sigma$.
+The GAN-tractable condition then becomes $\eps\, u_{\max} < \sigma$,
+satisfied for sufficiently strong regularization.
+Second, for the pure traffic flow case ($f_0 = 0$), the contraction argument
+can be adapted using the strong convexity of $H_0$ alone
+(see \Cref{cor:bilinear}), recovering a contraction under
+$\eps\, \rho_{\max} < c_0 = 1$.
 \end{remark}
 
-\subsection{Formal Gap: When GANs Outperform MFDGM}
+\subsection{When GANs Outperform Physics-Informed Methods}
 
-We now state precisely the regime in which GAN-based methods are superior.
+The following proposition makes precise the advantage of Extended-MFGAN
+over MFDGM within the GAN-tractable regime.
 
 \begin{proposition}[GAN Advantage]
 \label{prop:gap}
-In the GAN-tractable regime \eqref{eq:condition}:
+In the GAN-tractable regime \eqref{eq:condition}, Extended-MFGAN satisfies:
 \begin{enumerate}
-  \item[(i)] \textbf{Convergence metric:} Extended-MFGAN converges in
-    $\mathcal{W}_2$ (Wasserstein-2), while MFDGM converges in $L^p$ for $p<2$.
-    Wasserstein convergence implies convergence in distribution, whereas
-    $L^p$ convergence does not.
-  \item[(ii)] \textbf{Representation:} Extended-MFGAN learns $\rho$
-    distributionally (generator-based), enabling sampling from the equilibrium
-    distribution; MFDGM approximates $\rho$ pointwise.
-  \item[(iii)] \textbf{Rate:} Extended-MFGAN converges at rate
-    $(\eps L_R/\lambda)^k \to 0$, which is explicitly controlled
-    by the problem parameters.
+  \item Convergence in $\mathcal{W}_2$ (Wasserstein-2), which implies
+    convergence in distribution; MFDGM converges only in $L^p$ for $p<2$.
+  \item The equilibrium density $\rho^*$ is learned distributionally
+    via the generator, enabling direct sampling; MFDGM provides only
+    a pointwise approximation.
+  \item The convergence rate is explicit: $(\eps L_R/\lambda)^k \to 0$.
+    MFDGM provides no rate.
 \end{enumerate}
-Outside the GAN-tractable regime ($\eps L_R \geq \lambda$), MFDGM is preferred
-as the fixed-point iteration may diverge.
+Outside the GAN-tractable regime ($\eps L_R \geq \lambda$), MFDGM is preferred,
+as the fixed-point iteration may fail to converge.
 \end{proposition}
 
-The proof of (i)--(ii) follows from the convergence theorem in
-\Cref{sec:convergence}; (iii) is stated there as \Cref{thm:main}.
+Items (1) and (3) follow from \Cref{thm:main}; item (2) is a consequence
+of the GAN architecture used in the inner solver.

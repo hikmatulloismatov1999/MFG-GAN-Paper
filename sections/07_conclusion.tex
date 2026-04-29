@@ -1,25 +1,29 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-We introduced the class of weakly non-separable Hamiltonians and the
-Extended-MFGAN algorithm, which extends GAN-based MFG solvers beyond
-the separable regime. Our main contributions are:
-\begin{itemize}
-  \item A formal definition of weak non-separability and the GAN-tractable
-    condition $\eps L_R < \lambda$, answering when GAN methods are superior
-    to physics-informed methods.
-  \item Extended-MFGAN: a fixed-point GAN iteration provably convergent in
-    Wasserstein-2, with explicit rate $\kappa^k = (\eps L_R/\lambda)^k$.
-  \item Numerical validation on the MFG-LWR traffic benchmark and
-    high-dimensional settings.
-\end{itemize}
+We introduced weakly non-separable Hamiltonians and the Extended-MFGAN
+algorithm, which bridges the gap between GAN-based and physics-informed
+solvers for Mean Field Games. The central contribution is a Wasserstein-2
+contraction theorem that provides the first explicit convergence rate for
+MFGs with non-separable Hamiltonians, and identifies a sharp criterion
+separating the regime where GAN methods are provably superior from the
+regime where physics-informed methods should be preferred.
 
-\paragraph{Limitations and future work.}
-The GAN-tractable condition $\eps L_R < \lambda$ is sufficient but may not be
-necessary; closing this gap is an open problem.
-For $\eps L_R \geq \lambda$, combining Extended-MFGAN's outer iteration
-with MFDGM's inner solver (replacing APAC-Net) could extend applicability —
-we leave this hybrid approach to future work.
-Extending to \emph{mean field control} (MFC) and applications to
-manufacturing flow optimization and multi-agent reinforcement learning
-are natural directions.
+\paragraph{Limitations.}
+The GAN-tractable condition $\eps L_R < \lambda$ is sufficient for
+contraction but may not be necessary; the exact boundary of the GAN-tractable
+regime remains an open question. The analysis also assumes exact inner GAN
+solves; the bias introduced by finite inner iterations is bounded in
+\Cref{prop:inexact}, but a tighter treatment would be of interest.
+
+\paragraph{Future directions.}
+Several extensions are natural.
+When $\eps L_R \geq \lambda$, one can replace the inner GAN solver with
+MFDGM to form a hybrid algorithm that handles the fully non-separable regime
+at the cost of weaker convergence guarantees.
+Extension to mean field control problems \citep{carmona2018probabilistic},
+where the social planner optimizes over the whole population, is also
+of interest.
+Finally, applying Extended-MFGAN to large-scale multi-agent reinforcement
+learning and to engineering systems modeled by congestion-type MFGs
+are promising practical directions.

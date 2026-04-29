@@ -1,21 +1,21 @@
-\section{Extended-MFGAN Algorithm}
+\section{The Extended-MFGAN Algorithm}
 \label{sec:algorithm}
 
 \subsection{Key Idea: Freezing the Density}
 
-The fundamental obstacle to applying GANs to non-separable MFGs is the
-joint dependence of $H$ on $(\rho, p)$, which prevents the Hopf formula
-from yielding a clean saddle-point problem.
+The fundamental obstacle to applying GAN methods to non-separable MFGs is
+the joint dependence of $H$ on $(\rho, p)$, which prevents the saddle-point
+formulation \eqref{eq:saddle} from being derived.
+Our observation is that this obstacle disappears as soon as $\rho$ is held fixed.
 
-Our insight is that if $\rho$ is \emph{treated as known} (frozen from the
-previous iteration), the effective Hamiltonian
+If $\rho$ is treated as a known function from the previous iteration,
+the effective Hamiltonian
 \begin{equation}\label{eq:Hk}
   H^k(x,p) \coloneqq H_0(x,p) + \eps\, R(x,\rho^k(x,t),p)
 \end{equation}
-depends only on $(x,p)$ and is therefore \emph{separable} in the sense required
-for GAN-based methods ($H^k$ has no $\rho$-dependence, so the Hopf formula applies
-with effective interaction $f_0$). This reduces the non-separable MFG to a
-sequence of separable subproblems.
+depends only on $(x,p)$ and is therefore separable in the sense required
+for GAN-based methods. The non-separable MFG thus reduces to a sequence
+of separable subproblems, one per outer iteration.
 
 \subsection{Effective Saddle-Point at Step $k$}
 
@@ -28,9 +28,9 @@ Given frozen density $\rho^k$, the MFG subproblem at iteration $k$ is:
     + \E[f_0(\cdot,\rho)]
   \Bigr\},
 \end{equation}
-where $H^k$ is defined in \eqref{eq:Hk}. Problem \eqref{eq:saddle_k} is
-exactly in the APAC-Net form and can be solved by any GAN-based MFG solver.
-The solution gives the updated density $\rho^{k+1}$.
+where $H^k$ is defined in \eqref{eq:Hk}. This is exactly the APAC-Net
+saddle-point problem \eqref{eq:saddle}, with $H_0$ replaced by $H^k$.
+Any GAN-based MFG solver can be used as the inner subroutine.
 
 \subsection{Algorithm}
 
@@ -38,16 +38,16 @@ The solution gives the updated density $\rho^{k+1}$.
 \caption{Extended-MFGAN}
 \label{alg:main}
 \begin{algorithmic}[1]
-\Require Hamiltonian $H = H_0 - f_0 + \eps R$, diffusion $\nu$,
+\Require Hamiltonian $H = H_0 - f_0 + \eps R$, diffusion $\nu \geq 0$,
          terminal cost $g$, initial density $\rho_0$
 \Require GAN solver (e.g., APAC-Net), outer iterations $K$,
          inner GAN iterations $N$
-\State \textbf{Initialize:} $\rho^0 \leftarrow \rho_0$
+\State Initialize: $\rho^0 \leftarrow \rho_0$
 \For{$k = 0, 1, \ldots, K-1$}
-  \State \textbf{Freeze:} compute effective Hamiltonian
+  \State Compute effective Hamiltonian:
     $H^k(x,p) = H_0(x,p) + \eps\, R(x, \rho^k(x,\cdot), p)$
-  \State \textbf{Inner GAN solve:} run APAC-Net for $N$ iterations
-    on the separable MFG with Hamiltonian $H^k$ and interaction $f_0$:
+  \State Run inner GAN solver for $N$ iterations on the separable MFG
+    with Hamiltonian $H^k$ and interaction $f_0$:
     \[
       (\rho^{k+1}, \varphi^{k+1}) \leftarrow \textsc{APAC-Net}(H^k, f_0, g, \rho_0, N)
     \]
@@ -56,31 +56,33 @@ The solution gives the updated density $\rho^{k+1}$.
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{Special Cases}
+\subsection{Special Cases and Connections}
 
-\paragraph{Separable limit ($\eps = 0$).}
-$H^k = H_0$ for all $k$, so the outer loop is trivially convergent in one step,
-and Extended-MFGAN reduces exactly to APAC-Net. \hfill $\square$
+\paragraph{Separable limit.}
+When $\eps = 0$, we have $H^k = H_0$ for all $k$, so the outer loop
+converges in a single step and Extended-MFGAN reduces exactly to APAC-Net.
 
-\paragraph{Bilinear coupling ($R = \rho\cdot p$).}
-The frozen Hamiltonian is
-$H^k(x,p) = H_0(x,p) + \eps\,\rho^k(x,t)\,p$.
-Since $R$ is linear in $\rho$, each update $\rho^{k+1}$ is the exact solution
-to the subproblem given $\rho^k$, and the outer iteration is equivalent to
-a \emph{Picard iteration} on the bilinear coupling.
+\paragraph{Bilinear coupling.}
+When $R(x,\rho,p) = \rho\cdot p$ (as in the MFG-LWR model), the frozen
+Hamiltonian is $H^k(x,p) = H_0(x,p) + \eps\,\rho^k(x,t)\,p$.
+Since $R$ is linear in $\rho$, each outer update is the exact solution to
+the subproblem given $\rho^k$, and the iteration is a Picard scheme
+on the bilinear coupling.
 
-\paragraph{Connection to policy iteration \citep{lavigne2023policy}.}
-The policy iteration method for non-separable MFGs also iterates over a
-sequence of linear (decoupled) PDEs. Extended-MFGAN can be seen as a
-\emph{distributional, GAN-based} analogue of policy iteration,
-replacing finite-difference PDE solvers with neural GAN solvers and
-gaining scalability to high dimensions.
+\paragraph{Connection to policy iteration.}
+The policy iteration algorithm of \citet{lavigne2023policy} for non-separable
+MFGs also iterates over a sequence of decoupled linear PDEs.
+Extended-MFGAN is the distributional, GAN-based analogue: it replaces
+finite-difference PDE solvers with neural GAN solvers, inheriting
+scalability to high dimensions.
 
-\subsection{Computational Complexity}
+\subsection{Computational Cost}
 
-The total cost of Extended-MFGAN is $K \times$ (cost of one APAC-Net run).
-In the GAN-tractable regime, $K$ is small (linear convergence rate
-$(\eps L_R/\lambda)^k$), so the overhead over plain APAC-Net is modest.
-For the traffic flow example with $\eps = L_R = \lambda = 1$,
-we expect convergence in $O(\log(1/\delta))$ outer iterations for
-tolerance $\delta$.
+The total cost of Extended-MFGAN is $K$ times the cost of a single APAC-Net run.
+By \Cref{thm:main}, the outer iteration converges geometrically with rate
+$\kappa = \eps L_R / \lambda$. To reach tolerance $\delta$, at most
+\[
+  K = \left\lceil \frac{\log(1/\delta)}{\log(1/\kappa)} \right\rceil
+\]
+outer iterations are needed. In the GAN-tractable regime $\kappa < 1$,
+this is a small constant overhead over a single APAC-Net solve.
