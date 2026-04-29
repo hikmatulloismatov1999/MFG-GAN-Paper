@@ -1,0 +1,79 @@
+\section{Introduction}
+\label{sec:intro}
+
+Mean Field Games (MFGs) \citep{lasry2007mean, huang2006large} provide a powerful
+framework for modeling large populations of rational, indistinguishable agents
+whose individual actions collectively shape a population-level distribution.
+Applications span autonomous vehicles and traffic control \citep{huang2019mfg},
+economics and finance \citep{carmona2018probabilistic}, industrial engineering,
+and data science.
+
+The MFG equilibrium is characterized by a coupled PDE system:
+a backward Hamilton-Jacobi-Bellman (HJB) equation governing the optimal value
+function $\varphi$, and a forward Fokker-Planck (FP) equation governing the
+population density $\rho$:
+\begin{align}
+  -\partial_t \varphi - \nu\Delta\varphi + H(x,\rho,\nabla\varphi) &= 0,
+  \quad \text{in } (0,T)\times\Omega, \label{eq:HJB}\\
+  \partial_t \rho - \nu\Delta\rho - \div(\rho\,\nabla_p H(x,\rho,\nabla\varphi))
+  &= 0, \quad \text{in } (0,T)\times\Omega. \label{eq:FP}
+\end{align}
+The Hamiltonian $H$ encodes the interaction structure between agents.
+When $H$ is \emph{separable}, i.e., $H(x,\rho,p) = H_0(x,p) - f_0(x,\rho)$,
+the MFG system admits a variational (primal-dual) reformulation that
+connects naturally to Wasserstein GANs \citep{cao2021connecting},
+enabling powerful GAN-based solvers such as APAC-Net \citep{lin2021apac}
+and MFGANs \citep{ruthotto2020machine}.
+
+However, many practically important Hamiltonians are \emph{non-separable},
+meaning $H$ depends jointly on $(\rho, p)$.
+The canonical example is the MFG-LWR traffic flow model \citep{huang2019mfg},
+where
+\[
+  H(x,\rho,p) = \tfrac{1}{2}\norm{p}^2 - (1-\rho)\,p,
+\]
+coupling density and momentum through the congestion term $(1-\rho)p$.
+GAN-based methods fail on non-separable Hamiltonians because the Hopf formula,
+which enables the primal-dual reformulation, requires separability.
+The recent MFDGM method \citep{assouline2023deep} overcomes this limitation
+via physics-informed training but sacrifices the Wasserstein convergence
+guarantees and distributional learning strengths of GANs.
+
+\paragraph{Contributions.}
+This paper bridges the gap between GAN-based and physics-informed methods
+for MFGs. Our contributions are:
+
+\begin{enumerate}
+  \item \textbf{Weak non-separable Hamiltonians.}
+    We introduce a formal class of Hamiltonians parameterized by
+    a coupling strength $\eps \geq 0$, interpolating between fully
+    separable ($\eps=0$) and fully non-separable cases.
+    We characterize the regime $\eps L_R < \lambda$ as the \emph{GAN-tractable}
+    regime, providing the first formal answer to when GANs outperform
+    physics-informed methods.
+
+  \item \textbf{Extended-MFGAN algorithm.}
+    We propose a fixed-point GAN iteration that decomposes the non-separable
+    MFG into a sequence of separable subproblems, each solvable by existing
+    GAN solvers (e.g., APAC-Net). The algorithm recovers APAC-Net exactly
+    at $\eps = 0$.
+
+  \item \textbf{Wasserstein convergence theorem.}
+    We prove that the fixed-point iteration is a contraction in $\mathcal{W}_2$
+    with rate $(\eps L_R/\lambda)^k$, yielding the first Wasserstein-level
+    convergence guarantee for MFGs with non-separable Hamiltonians.
+
+  \item \textbf{Numerical experiments.}
+    We validate on the MFG-LWR traffic benchmark and high-dimensional test
+    problems, demonstrating superior convergence over MFDGM in the weakly
+    non-separable regime, and characterizing the phase transition at
+    $\eps L_R = \lambda$.
+\end{enumerate}
+
+\paragraph{Paper organization.}
+\Cref{sec:prelim} reviews MFGs, GAN-based solvers, and MFDGM.
+\Cref{sec:weak} introduces weakly non-separable Hamiltonians.
+\Cref{sec:algorithm} presents Extended-MFGAN.
+\Cref{sec:convergence} gives the convergence analysis.
+\Cref{sec:experiments} presents numerical results.
+\Cref{sec:conclusion} concludes.

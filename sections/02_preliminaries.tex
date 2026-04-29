@@ -1,0 +1,93 @@
+\section{Preliminaries}
+\label{sec:prelim}
+
+\subsection{Mean Field Games}
+
+Let $\Omega \subset \R^d$ be a bounded domain and $T > 0$ a finite horizon.
+A Mean Field Game is described by the coupled PDE system
+\eqref{eq:HJB}--\eqref{eq:FP} with initial condition
+$\rho(0,\cdot) = \rho_0$ and terminal condition
+$\varphi(T,\cdot) = g(\cdot, \rho(T,\cdot))$.
+The solution $(\varphi, \rho)$ represents a Nash equilibrium: no agent
+can improve their cost by unilaterally changing their control.
+
+\subsection{Separable Hamiltonians and GAN-Based Methods}
+
+When the Hamiltonian has \emph{separable} structure
+\[
+  H(x,\rho,p) = H_0(x,p) - f_0(x,\rho),
+\]
+the MFG system admits a primal-dual variational formulation via the
+Hopf formula in density space \citep{benamou2000computational}:
+\begin{equation}\label{eq:saddle}
+  \inf_{\rho}\, \sup_{\varphi}\;
+  \Bigl\{
+    \E_{z\sim P(z),\, t\sim\mathrm{Unif}[0,T]}
+    \bigl[\partial_t\varphi + \nu\Delta\varphi - H_0(\cdot,\nabla\varphi)\bigr]
+    + \E_z[\varphi(0,\cdot)] - \E_{x\sim\rho_T}[\varphi(T,x)]
+    + \E[f_0(\cdot,\rho)]
+  \Bigr\}.
+\end{equation}
+The min-max structure of \eqref{eq:saddle} matches the
+Kantorovich-Rubinstein dual formulation of Wasserstein GANs
+\citep{villani2009optimal}, enabling the GAN-based algorithms:
+
+\paragraph{APAC-Net \citep{lin2021apac}.}
+Uses a generator neural network to parameterize $\rho$ (sampling-based)
+and a critic network to parameterize $\varphi$, trained via adversarial
+updates to solve \eqref{eq:saddle}. Achieves Wasserstein-1 convergence.
+
+\paragraph{MFGAN \citep{ruthotto2020machine}.}
+Similar adversarial framework, leverages the connection to
+Wasserstein-2 optimal transport.
+
+\paragraph{Limitation.}
+Both methods require separability of $H$. For non-separable $H$,
+the Hopf formula does not apply and \eqref{eq:saddle} cannot be derived.
+
+\subsection{Non-Separable Hamiltonians: MFDGM}
+
+\citet{assouline2023deep} propose the MFDGM method, which uses two
+neural networks $N_\omega$ and $N_\theta$ to directly approximate
+$(\varphi, \rho)$ by minimizing the PDE residuals:
+\begin{align*}
+  \mathcal{L}_{\mathrm{HJB}} &= \frac{1}{B}\sum_{b=1}^B
+    \bigl|\partial_t\varphi_\omega + \nu\Delta\varphi_\omega
+    - H(x_b,\rho_\theta,\nabla\varphi_\omega)\bigr|^2
+    + \frac{1}{S}\sum_{s=1}^S
+    \bigl|\varphi_\omega(T,x_s) - g(x_s,\rho_\theta(T,x_s))\bigr|^2,\\
+  \mathcal{L}_{\mathrm{FP}} &= \frac{1}{B}\sum_{b=1}^B
+    \bigl|\partial_t\rho_\theta - \nu\Delta\rho_\theta
+    - \div(\rho_\theta\,\nabla_p H)\bigr|^2
+    + \frac{1}{S}\sum_{s=1}^S
+    \bigl|\rho_\theta(0,x_s) - \rho_0(x_s)\bigr|^2.
+\end{align*}
+MFDGM works for any $H$ (separable or not) but
+(i) approximates $\rho$ \emph{pointwise} rather than distributionally, and
+(ii) achieves only $L^p$ ($p<2$) convergence (Theorem~3.2 of \citep{assouline2023deep}),
+weaker than the Wasserstein-1 guarantee of APAC-Net.
+
+\subsection{Comparison: Where GANs Are Better}
+
+We summarize the formal gaps between the two families:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcccc}
+\toprule
+Method & Non-sep.\ $H$ & Stochastic & $\rho$ representation & Convergence metric \\
+\midrule
+APAC-Net / MFGAN & No  & Yes & Distributional (generator) & Wasserstein-1 \\
+MFDGM            & Yes & Yes & Pointwise NN               & $L^p$, $p<2$  \\
+\textbf{Ours}    & Weak & Yes & Distributional (generator) & Wasserstein-2 \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of MFG deep learning methods.}
+\label{tab:comparison}
+\end{table}
+
+\noindent The key observation is that GANs achieve \emph{distributional} learning
+of $\rho$ (the generator samples from it) and \emph{Wasserstein} convergence,
+both strictly stronger than MFDGM's pointwise approximation and $L^p$ convergence.
+The gap is the restriction to separable $H$. Our work closes this gap
+for the weakly non-separable regime.

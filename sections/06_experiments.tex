@@ -1,0 +1,85 @@
+\section{Numerical Experiments}
+\label{sec:experiments}
+
+We evaluate Extended-MFGAN on three experiments designed to:
+(1) validate the convergence theorem,
+(2) demonstrate superiority over MFDGM in the GAN-tractable regime,
+(3) characterize the phase transition at $\eps L_R = \lambda$.
+
+\subsection{Setup}
+
+All experiments use the following architecture for the inner GAN:
+a generator $G_\theta$ with 3 hidden layers of 128 neurons (ReLU),
+and a critic $D_\omega$ with 3 hidden layers of 128 neurons (Softplus),
+both trained with Adam at learning rate $10^{-4}$.
+Outer iterations: $K = 20$; inner iterations: $N = 5000$ per outer step.
+
+\subsection{Experiment 1: Separable Limit ($\eps = 0$, Analytic Solution)}
+
+We first verify that Extended-MFGAN recovers APAC-Net exactly when $\eps = 0$,
+using the analytic MFG solution from \citet{lin2021apac}:
+\[
+  \varphi(t,x) = \norm{x}^2/2 - d\cdot t, \quad
+  \rho(t,x) = (2\pi)^{-d/2} e^{-\norm{x}^2/2},
+\]
+in $\Omega = [-2,2]^d$, $T = 1$, $\nu = 1$.
+
+\paragraph{Metric.} We report the relative $L^2$ error and
+$\mathcal{W}_2$ distance to the exact solution on a $100\times 100$ grid.
+
+\paragraph{Expected result.}
+Single outer iteration achieves the same accuracy as APAC-Net
+(\Cref{cor:apacnet}). \todo{Fill in table with actual numbers.}
+
+\subsection{Experiment 2: Traffic Flow Benchmark (MFG-LWR)}
+
+We apply Extended-MFGAN to the MFG-LWR system \eqref{eq:decomp}
+with non-separable Hamiltonian $H = \tfrac{1}{2}\norm{p}^2 - (1-\rho)p$
+($\eps = 1$, bilinear coupling). Spatial domain $\Omega = [0,1]$,
+$T = 1$, terminal cost $g = 0$, initial density
+$\rho_0(x) = 0.2 - 0.6\exp(-\tfrac{1}{2}(\tfrac{x-0.5}{0.1})^2)$.
+
+We run both deterministic ($\nu = 0$) and stochastic ($\nu = 0.5$) cases.
+
+\paragraph{Comparison.}
+We compare against:
+\begin{itemize}
+  \item MFDGM \citep{assouline2023deep} (Algorithm~1 in that paper),
+  \item APAC-Net \citep{lin2021apac} applied directly (expected to fail — baseline),
+  \item Extended-MFGAN (ours).
+\end{itemize}
+Metrics: HJB/FP residual loss, fundamental diagram validation (flux $q = \rho u$),
+and $\mathcal{W}_2$ distance between iterations.
+
+\paragraph{Expected result.}
+Extended-MFGAN converges faster than MFDGM in $\mathcal{W}_2$ (outer contraction
+$\kappa < 1$), while APAC-Net fails to converge (non-separable $H$).
+\todo{Fill in figures: convergence curves, density/cost snapshots, fundamental diagram.}
+
+\subsection{Experiment 3: Phase Transition at $\eps L_R = \lambda$}
+
+We vary $\eps \in \{0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2\}$ and for each value:
+\begin{enumerate}
+  \item Measure the outer contraction factor $\kappa_{\text{emp}}$ empirically
+    (ratio of successive $\mathcal{W}_2$ errors),
+  \item Compare to the theoretical bound $\kappa = \eps L_R / \lambda$.
+\end{enumerate}
+We expect a clear phase transition: for $\eps L_R < \lambda$, convergence is
+geometric; for $\eps L_R \geq \lambda$, the outer iteration diverges and
+MFDGM should be preferred.
+
+\paragraph{Expected result.}
+A plot of $\kappa_{\text{emp}}$ vs $\eps$ showing the transition at
+the predicted threshold $\eps^* = \lambda / L_R$.
+\todo{Fill in phase transition plot.}
+
+\subsection{Experiment 4: High-Dimensional Scaling}
+
+We test Extended-MFGAN on the analytic MFG in dimensions $d = 2, 50, 100, 200$
+with weak coupling ($\eps = 0.5$, $R(x,\rho,p) = \rho\cdot\norm{p}^2/2$).
+We compare relative error and wall-clock time against MFDGM.
+
+\paragraph{Expected result.}
+Extended-MFGAN achieves comparable or better accuracy at lower
+computational cost (fewer total neural network evaluations due to GAN efficiency).
+\todo{Fill in scaling table.}

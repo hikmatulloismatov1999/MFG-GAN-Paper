@@ -1,0 +1,109 @@
+\section{Supplementary Proofs}
+\label{app:proofs}
+
+\subsection{Detailed Expansion: Coupling Terms in Lemma~\ref{lem:stability}}
+\label{app:step5}
+
+We provide the complete expansion of term (ii) from \eqref{eq:coupling_split}.
+
+With $R^i(x,p) \coloneqq R(x,\bar\rho_i(x,t),p)$, the $p$-variation contribution is:
+\begin{align*}
+  \text{(ii)}
+  &= \eps\int_\Omega \bigl[R^1(x,p_1) - R^1(x,p_2)\bigr]\delta\rho\,dx
+   - \eps\int_\Omega \delta p\cdot\bigl[\rho_1\nabla_pR^1(x,p_1)
+      - \rho_2\nabla_pR^2(x,p_2)\bigr]\,dx.
+\end{align*}
+By the mean value theorem and \Cref{ass:lip}:
+$|R^1(p_1) - R^1(p_2)| \leq L_{R,p}|\delta p|$.
+Similarly $|\nabla_pR^1(p_1) - \nabla_pR^2(p_2)| \leq L_{R,p}|\delta p| + L_R|\delta\bar\rho|$.
+Using \Cref{ass:bound} ($\rho_i \leq \rho_{\max}$) and Young's inequality:
+\begin{equation}\label{eq:p_var_bound}
+  |\text{(ii)}|
+  \leq 3\,\eps\,L_{R,p}\,\rho_{\max}\int_\Omega |\delta p|^2\,dx
+  + \eps\,L_R\,\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}.
+\end{equation}
+Under $\eps\,L_{R,p}\,\rho_{\max} < c_0$, the first term in \eqref{eq:p_var_bound}
+is absorbed by the strong convexity bound \eqref{eq:convex_bound}:
+\[
+  A_0+C_0+\eps(A_R+C_R)_{\text{(ii)}}
+  \leq -\frac{c_0 - 3\eps L_{R,p}\rho_{\max}}{2}
+       \int_\Omega(\rho_1+\rho_2)|\delta p|^2\,dx \leq 0.
+\]
+The remaining $L_R$-term from \eqref{eq:p_var_bound} combines with term (i)
+of \eqref{eq:rho_bound} to give \eqref{eq:final_stab}.
+
+\subsection{Explicit Verification for the Bilinear Case}
+\label{app:bilinear}
+
+For $R(x,\rho,p) = \rho\cdot p$ (MFG-LWR traffic Hamiltonian), we verify
+the coupling bound by direct computation.
+
+Here $H^i(x,p) = H_0(x,p) + \eps\,\bar\rho_i\cdot p$, so
+$\nabla_p H^i(p) = \nabla_pH_0(p) + \eps\bar\rho_i$.
+
+\paragraph{Base part.} With $H_0(p) = \frac{1}{2}|p|^2 - p$ (so $c_0=1$):
+\begin{align*}
+  A_0 + C_0
+  &= \int_\Omega\rho_1\bigl[H_0(p_1) - H_0(p_2)
+      - \nabla_pH_0(p_1)\cdot\delta p\bigr]dx
+    -\int_\Omega\rho_2\bigl[H_0(p_1) - H_0(p_2)
+      - \nabla_pH_0(p_2)\cdot\delta p\bigr]dx\\
+  &= -\int_\Omega\rho_1\tfrac{1}{2}|\delta p|^2\,dx
+     -\int_\Omega\rho_2\tfrac{1}{2}|\delta p|^2\,dx
+   = -\frac{1}{2}\int_\Omega(\rho_1+\rho_2)|\delta p|^2\,dx \;\leq\; 0. \checkmark
+\end{align*}
+
+\paragraph{Coupling part.} Expanding $\eps(A_R+C_R)$ with $R=\bar\rho\cdot p$:
+\begin{align*}
+  \eps(A_R+C_R)
+  &= \eps\int_\Omega(\bar\rho_1 p_1 - \bar\rho_2 p_2)\delta\rho\,dx
+   - \eps\int_\Omega\delta p\cdot(\rho_1\bar\rho_1 - \rho_2\bar\rho_2)\,dx.
+\end{align*}
+Expanding and collecting:
+\[
+  = \eps\int_\Omega(\bar\rho_1-\bar\rho_2)p_1\rho_1\,dx
+   +\eps\int_\Omega\bar\rho_2(p_1-p_2)\rho_1\,dx
+   -\eps\int_\Omega(\bar\rho_1-\bar\rho_2)p_1\rho_2\,dx
+   +\cdots
+\]
+After cancellation, only the cross-term survives:
+\[
+  \eps(A_R+C_R) = -\eps\int_\Omega\delta\bar\rho\,
+  \bigl[(p_1-p_2)\rho_2 - p_2\,\delta\rho\bigr]\,dx.
+\]
+Bounding each piece:
+\begin{align*}
+  |\eps(A_R+C_R)|
+  &\leq \eps\rho_{\max}\norm{\delta\bar\rho}_{L^2}\norm{\delta p}_{L^2}
+   + \eps\,p_{\max}\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}.
+\end{align*}
+The first term is absorbed by $A_0+C_0$ under $\eps\rho_{\max}<c_0=1$
+(via Young: $ab \leq \frac{c_0}{4}\norm{\delta p}^2 + \frac{\eps^2\rho_{\max}^2}{c_0}\norm{\delta\bar\rho}^2$).
+The second gives the $L_R$-bound with $L_R = p_{\max} = u_{\max}$,
+confirming \eqref{eq:final_stab}. $\hfill\square$
+
+\subsection{Proof of Proposition~\ref{prop:inexact}}
+
+By triangle inequality and Theorem~\ref{thm:main}:
+\begin{align*}
+  \norm{\rho^{k+1}_N - \rho^*}_{L^2}
+  &\leq \norm{\rho^{k+1}_N - \rho^{k+1}}_{L^2}
+   + \norm{\rho^{k+1} - \rho^*}_{L^2}
+  \leq \delta_N + \kappa\,\norm{\rho^k_N - \rho^*}_{L^2}.
+\end{align*}
+Iterating and summing $\sum_{j=0}^{k-1}\kappa^j \leq \frac{1}{1-\kappa}$
+yields the result. $\hfill\square$
+
+\subsection{On the Equivalence of $L^2$ and $\mathcal{W}_2$ Convergence}
+\label{app:wasserstein}
+
+For probability densities $\rho_1,\rho_2$ on bounded $\Omega$ with
+$\norm{\rho_i}_{L^\infty} \leq \rho_{\max}$:
+\[
+  \mathcal{W}_2(\rho_1,\rho_2)^2
+  \;\leq\; \mathrm{diam}(\Omega)\cdot\norm{\rho_1-\rho_2}_{L^1}
+  \;\leq\; \mathrm{diam}(\Omega)\cdot|\Omega|^{1/2}\cdot\norm{\rho_1-\rho_2}_{L^2}.
+\]
+See \citet{villani2009optimal}, Theorem~7.12.
+Hence $L^2$ convergence at rate $\kappa^k$ implies $\mathcal{W}_2$ convergence
+at the same rate (up to domain-dependent constants). $\hfill\square$

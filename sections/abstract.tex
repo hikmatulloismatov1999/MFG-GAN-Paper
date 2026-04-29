@@ -1,0 +1,28 @@
+Mean Field Games (MFGs) model large populations of rational agents interacting
+through a mean-field coupling, and are described by a coupled system of
+Hamilton-Jacobi-Bellman (HJB) and Fokker-Planck (FP) equations.
+Existing deep learning methods split into two families:
+GAN-based approaches (APAC-Net, MFGANs) achieve strong Wasserstein convergence
+guarantees but are restricted to Hamiltonians with separable structure;
+physics-informed methods (MFDGM) handle non-separable Hamiltonians but sacrifice
+the distributional learning advantages of GANs.
+
+We introduce the class of \emph{weakly non-separable Hamiltonians},
+defined as perturbations of a separable base by a coupling term of strength $\eps$:
+\[
+  H(x,\rho,p) = H_0(x,p) - f_0(x,\rho) + \eps\, R(x,\rho,p).
+\]
+We propose \textbf{Extended-MFGAN}, a fixed-point GAN iteration that solves
+MFGs in this class by reducing each outer step to a separable subproblem
+solvable by standard GAN methods. We prove that the outer iteration is a contraction
+in the Wasserstein-2 metric whenever $\eps \cdot L_R < \lambda$, where $L_R$ is
+the Lipschitz constant of $R$ in $\rho$ and $\lambda$ is the monotonicity
+constant of $f_0$, yielding linear convergence with rate $(\eps L_R/\lambda)^k$.
+This provides the first formal characterization of the regime where GAN methods
+outperform physics-informed approaches.
+We validate our method on the MFG-LWR traffic flow benchmark, demonstrating
+superior convergence and Wasserstein accuracy compared to MFDGM, and recover
+APAC-Net exactly in the separable limit $\eps = 0$.
+
+\noindent\textbf{Keywords:} Mean Field Games, Generative Adversarial Networks,
+Non-Separable Hamiltonians, Wasserstein Convergence, Traffic Flow.

@@ -1,0 +1,79 @@
+\documentclass[12pt]{article}
+
+%% Packages
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{xcolor}
+\usepackage{thmtools}
+\usepackage{natbib}
+\usepackage{microtype}
+\usepackage{bbm}
+
+%% Theorem environments
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\newtheorem{remark}[theorem]{Remark}
+
+%% Operators
+\DeclareMathOperator{\div}{div}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\W}{\mathcal{W}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\eps}{\varepsilon}
+
+%% Colors for notes
+\newcommand{\todo}[1]{\textcolor{red}{\textbf{[TODO: #1]}}}
+\newcommand{\note}[1]{\textcolor{blue}{\textbf{[NOTE: #1]}}}
+
+%% Title
+\title{\textbf{Generative Adversarial Networks for Mean Field Games\\
+with Weakly Non-Separable Hamiltonians}}
+
+\author{
+  Author One\thanks{Institution, email} \and
+  Author Two\thanks{Institution, email}
+}
+
+\date{\today}
+
+%% ============================================================
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  \input{sections/abstract}
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\input{sections/01_introduction}
+\input{sections/02_preliminaries}
+\input{sections/03_weak_nonseparable}
+\input{sections/04_algorithm}
+\input{sections/05_convergence}
+\input{sections/06_experiments}
+\input{sections/07_conclusion}
+
+\bibliographystyle{abbrvnat}
+\bibliography{references}
+
+\appendix
+\input{appendix/A_proofs}
+
+\end{document}

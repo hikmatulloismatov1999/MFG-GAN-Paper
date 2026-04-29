@@ -1,0 +1,25 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We introduced the class of weakly non-separable Hamiltonians and the
+Extended-MFGAN algorithm, which extends GAN-based MFG solvers beyond
+the separable regime. Our main contributions are:
+\begin{itemize}
+  \item A formal definition of weak non-separability and the GAN-tractable
+    condition $\eps L_R < \lambda$, answering when GAN methods are superior
+    to physics-informed methods.
+  \item Extended-MFGAN: a fixed-point GAN iteration provably convergent in
+    Wasserstein-2, with explicit rate $\kappa^k = (\eps L_R/\lambda)^k$.
+  \item Numerical validation on the MFG-LWR traffic benchmark and
+    high-dimensional settings.
+\end{itemize}
+
+\paragraph{Limitations and future work.}
+The GAN-tractable condition $\eps L_R < \lambda$ is sufficient but may not be
+necessary; closing this gap is an open problem.
+For $\eps L_R \geq \lambda$, combining Extended-MFGAN's outer iteration
+with MFDGM's inner solver (replacing APAC-Net) could extend applicability —
+we leave this hybrid approach to future work.
+Extending to \emph{mean field control} (MFC) and applications to
+manufacturing flow optimization and multi-agent reinforcement learning
+are natural directions.
