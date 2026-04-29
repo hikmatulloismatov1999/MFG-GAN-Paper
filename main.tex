@@ -11,10 +11,8 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{xcolor}
-\usepackage{thmtools}
 \usepackage{natbib}
 \usepackage{microtype}
-\usepackage{bbm}
 
 %% Theorem environments
 \newtheorem{theorem}{Theorem}[section]
@@ -26,7 +24,7 @@
 \newtheorem{remark}[theorem]{Remark}
 
 %% Operators
-\DeclareMathOperator{\div}{div}
+\newcommand{\Div}{\operatorname{div}}
 \DeclareMathOperator*{\argmin}{arg\,min}
 \DeclareMathOperator*{\argmax}{arg\,max}
 \newcommand{\R}{\mathbb{R}}

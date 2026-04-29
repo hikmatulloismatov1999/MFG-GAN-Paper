@@ -111,7 +111,7 @@ where $\delta\varphi = \varphi_1 - \varphi_2$ and $\delta\rho = \rho_1 - \rho_2$
 
 \paragraph{Step 1: Compute $\tfrac{d}{dt}\int_\Omega \delta\varphi\cdot\delta\rho\, dx$.}
 From HJB$_i$: $\partial_t \varphi_i = -\nu\Delta\varphi_i + H^i(x,\nabla\varphi_i) - f_0(x,\rho_i)$.
-From FP$_i$: $\partial_t\rho_i = \nu\Delta\rho_i + \div(\rho_i\nabla_p H^i(x,\nabla\varphi_i))$.
+From FP$_i$: $\partial_t\rho_i = \nu\Delta\rho_i + \Div(\rho_i\nabla_p H^i(x,\nabla\varphi_i))$.
 
 Subtracting and substituting:
 \begin{align}
@@ -124,7 +124,7 @@ Subtracting and substituting:
   \notag\\
   &\quad
   - \int_\Omega \bigl[f_0(\rho_1) - f_0(\rho_2)\bigr]\delta\rho\, dx
-  + \int_\Omega \delta\varphi\cdot\div\bigl(J_1 - J_2\bigr)dx,
+  + \int_\Omega \delta\varphi\cdot\Div\bigl(J_1 - J_2\bigr)dx,
   \label{eq:ddt}
 \end{align}
 where $J_i = \rho_i\nabla_p H^i(\nabla\varphi_i)$ is the agent current.
@@ -141,7 +141,7 @@ The two diffusion contributions exactly cancel.
 
 \paragraph{Step 3: Current terms via IBP.}
 \[
-  \int_\Omega \delta\varphi\cdot\div(J_1 - J_2)\, dx
+  \int_\Omega \delta\varphi\cdot\Div(J_1 - J_2)\, dx
   = -\int_\Omega \nabla\delta\varphi\cdot(J_1 - J_2)\, dx.
 \]
 Denoting $p_i = \nabla\varphi_i$ and $\delta p = p_1 - p_2 = \nabla\delta\varphi$,
@@ -274,7 +274,7 @@ $\rho^{k+1} = \mathcal{T}(\rho^k)$ gives \eqref{eq:contraction}.
 
 For the Wasserstein statement: by the Brenier-Benamou theorem and
 the $L^\infty$ bound of \Cref{ass:bound}, $L^2$ convergence of densities
-implies $\mathcal{W}_2$ convergence (see \citealt{villani2009optimal}, Ch.~7).
+implies $\mathcal{W}_2$ convergence (see \citet{villani2009optimal}, Ch.~7).
 \end{proof}
 
 \begin{corollary}[Density-only coupling]\label{cor:density}
