@@ -1,25 +1,21 @@
-Deep learning solvers for Mean Field Games split into two families with
-a fundamental tension: GAN-based methods achieve strong Wasserstein convergence
-and learn population densities distributionally, but are provably limited to
-Hamiltonians with separable structure; physics-informed methods such as MFDGM
-handle non-separable Hamiltonians but sacrifice both distributional learning
-and Wasserstein guarantees.
-We resolve this tension by introducing the class of \emph{weakly non-separable
-Hamiltonians} — those where the non-separable coupling is controlled by a
-small parameter — and proposing \textbf{Extended-MFGAN}, a fixed-point GAN
-iteration that handles this class while retaining the full power of GAN-based
-solvers.
-Our main theoretical contribution is a \emph{Wasserstein-2 contraction theorem}:
-we prove that Extended-MFGAN converges geometrically to the Nash equilibrium
-with an explicit rate governed by the ratio of coupling strength to
-Lasry-Lions monotonicity.
-This yields the first formal characterization of the regime in which GAN methods
-provably outperform physics-informed approaches, identifying a sharp phase
-transition between the two regimes.
-We validate the method on the MFG-LWR traffic flow benchmark — the canonical
-non-separable problem — in both deterministic and stochastic settings,
-and recover existing GAN solvers as an exact special case.
+Existing deep learning solvers for Mean Field Games fall into two families.
+GAN-based methods learn population densities distributionally and come with
+Wasserstein convergence guarantees, but are restricted to Hamiltonians with
+separable structure. Physics-informed methods handle non-separable Hamiltonians
+but provide only weak pointwise approximations with no explicit convergence rate.
+We introduce the class of \emph{weakly non-separable Hamiltonians}, where the
+coupling between density and momentum is measured by a single parameter,
+and propose Extended-MFGAN, a fixed-point GAN iteration that handles this class
+without abandoning the distributional learning and Wasserstein guarantees of
+GAN-based solvers. Our main result is a contraction theorem in the Wasserstein-2
+metric, with a geometric convergence rate determined explicitly by the ratio of
+coupling strength to Lasry-Lions monotonicity. This provides the first rigorous
+criterion separating the regimes where GAN methods outperform physics-informed
+approaches and vice versa. We validate the method on the MFG-LWR traffic flow
+problem, the canonical non-separable benchmark, in both deterministic and
+stochastic settings.
 
-\noindent\textbf{Keywords:} Mean Field Games, Generative Adversarial Networks,
+\smallskip
+\noindent\textit{Keywords:} Mean Field Games, Generative Adversarial Networks,
 Non-Separable Hamiltonians, Wasserstein Convergence, Lasry-Lions Theory,
 Traffic Flow.
