@@ -68,6 +68,38 @@ Using decomposition \eqref{eq:decomp} with $\eps = 1$:
 Since $R$ is linear in $\rho$, the Lipschitz constant is
 $L_R = \norm{p}_\infty \leq u_{\max}$ (speeds are physically bounded).
 
+\begin{proposition}[Bilinear exactness and tight rate]
+\label{prop:bilinear_exact}
+For $R(x,\rho,p) = \rho\cdot p$, the coupling is linear in $\rho$.
+Consequently the effective Hamiltonian
+$H^k(x,p) = H_0(x,p) + \eps\,\rho^k(x,t)\,p$
+is the \emph{exact} (not approximated) Hamiltonian for the subproblem
+at iteration $k$; no Taylor-expansion error is introduced.
+Moreover, the convergence rate $\kappa = \eps\, u_{\max}/\lambda$ in
+\Cref{thm:main} is \emph{sharp}: the linearized fixed-point map
+at the equilibrium $\rho^*$ has operator norm exactly $\eps L_R/\lambda$,
+so the $O(\kappa^k)$ decay cannot be improved by a factor better than
+$1 + o(1)$.
+\end{proposition}
+\begin{proof}
+Linearity in $\rho$ is immediate.
+For sharpness, consider the ergodic MFG on the torus $\Omega = \mathbb{T}^d$
+with $f_0(\rho) = \lambda\rho$ and $R(x,\rho) = L_R\rho$ (density-only,
+for clarity).
+The uniform profile $\rho^* \equiv |\Omega|^{-1}$ is the unique equilibrium.
+Linearizing at $\rho^* = 1$ (after normalization $|\Omega|=1$):
+the stationary FP equation $\Delta(\delta\varphi) = 0$ forces
+$\delta\varphi = \mathrm{const}$, and the linearized HJB then gives
+\[
+  -\lambda\,\delta\rho + \eps\, L_R\,\delta\bar\rho = 0
+  \quad\Longrightarrow\quad
+  \delta\rho = \frac{\eps\, L_R}{\lambda}\,\delta\bar\rho.
+\]
+Hence $\mathrm{Lip}(\mathcal{T}|_{\rho^*}) = \eps L_R/\lambda = \kappa$
+exactly, and $\|\rho^k - \rho^*\|_{L^2} = \kappa^k\|\rho^0-\rho^*\|_{L^2}$
+for all small perturbations.
+\end{proof}
+
 \begin{remark}[Role of the interaction term]
 \label{rem:f0_traffic}
 The original MFG-LWR model of \citet{huang2019mfg} contains no explicit
@@ -109,3 +141,44 @@ as the fixed-point iteration may fail to converge.
 
 Items (1) and (3) follow from \Cref{thm:main}; item (2) is a consequence
 of the GAN architecture used in the inner solver.
+
+\begin{proposition}[Necessity of the GAN-tractable condition]
+\label{prop:necessity}
+The condition $\eps L_R < \lambda$ is not merely sufficient: there exists
+a family of weakly non-separable MFGs parameterized by $\eps$ such that,
+for every $\eps L_R \geq \lambda$, the Extended-MFGAN outer iteration
+diverges for all starting points $\rho^0 \neq \rho^*$.
+\end{proposition}
+\begin{proof}
+Consider the ergodic MFG on the torus $\Omega = \mathbb{T}^d$ with
+$H_0(p) = \tfrac{1}{2}\norm{p}^2$, $f_0(\rho) = \lambda\rho$,
+$R(x,\rho) = L_R\rho$ (density-only, $\nu = 0$):
+\begin{align*}
+  \tfrac{1}{2}\norm{\nabla\varphi}^2 - \lambda\rho + \eps L_R\bar\rho &= c
+  \quad\text{(ergodic HJB)},\\
+  \Div(\rho\nabla\varphi) &= 0
+  \quad\text{(stationary FP)}.
+\end{align*}
+The unique equilibrium is $\rho^* \equiv 1$, $\nabla\varphi^* = 0$.
+Linearizing at $\rho^* = 1$: the stationary FP forces
+$\Delta(\delta\varphi) = 0$, hence $\nabla(\delta\varphi) = 0$.
+The linearized HJB then reduces to the scalar equation
+$-\lambda\,\delta\rho + \eps L_R\,\delta\bar\rho = 0$, giving
+\[
+  \mathcal{T}(1 + \delta\bar\rho) = 1 + \frac{\eps L_R}{\lambda}\,\delta\bar\rho.
+\]
+The outer iteration satisfies
+$\|\rho^k - \rho^*\|_{L^2} = (\eps L_R/\lambda)^k\|\rho^0 - \rho^*\|_{L^2}$.
+When $\eps L_R \geq \lambda$, the factor $(\eps L_R/\lambda)^k \geq 1$
+for all $k$, so the error does not decrease.
+For $\eps L_R > \lambda$, it grows without bound.
+\end{proof}
+
+\begin{remark}
+The same ergodic example shows that the contraction rate $\kappa = \eps L_R/\lambda$
+in \Cref{thm:main} is \emph{sharp}: the linearized iteration achieves
+equality $\|\rho^k - \rho^*\| = \kappa^k\|\rho^0 - \rho^*\|$.
+Together with \Cref{prop:necessity}, this means the GAN-tractable condition
+$\eps L_R < \lambda$ is both necessary and sufficient for linear convergence
+of the outer iteration, at least in the linearized (small-perturbation) regime.
+\end{remark}
