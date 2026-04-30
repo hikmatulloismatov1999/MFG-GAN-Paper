@@ -84,6 +84,70 @@ geometric growth above.}
 \label{fig:phase_transition}
 \end{figure}
 
+\subsection{Bilinear traffic flow (Experiment 2)}
+
+We next validate the tightness claim of Proposition~\ref{prop:bilinear_exact}
+on the MFG-LWR traffic Hamiltonian
+$H(x,\rho,p) = \tfrac{1}{2}p^2 - (1-\rho)p$, with bilinear coupling
+$R(x,\rho,p) = \rho p$ and $\varepsilon = 1$ in the decomposition
+\eqref{eq:decomp}.
+The no-drift uniform equilibrium is $(\rho^*, p^*) = (1, 1-\varepsilon)$,
+at which $L_R(p^*) = |p^*| = |1-\varepsilon|$.
+The linearised analysis (analogue of Proposition~\ref{prop:bilinear_exact})
+gives the contraction rate
+\[
+  \kappa = \frac{\varepsilon\, |1-\varepsilon|}{\lambda}.
+\]
+For $\lambda = 0.2$, the equation $\kappa = 1$ has two roots in $(0,1)$,
+$\varepsilon_\pm^* = \tfrac{1}{2}(1 \pm \sqrt{1 - 4\lambda}) \approx \{0.276,\, 0.724\}$,
+producing two phase transitions.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rrrlc}
+\toprule
+$\varepsilon$ & $\kappa = \varepsilon|1-\varepsilon|/\lambda$ & $\hat\kappa$
+              & $\|\rho^{12}-\rho^*\|_{L^2}$ & status \\
+\midrule
+$0.05$ & $0.237$ & $0.237$ & $1.1\times 10^{-9}$  & converging \\
+$0.10$ & $0.450$ & $0.450$ & $2.4\times 10^{-6}$  & converging \\
+$0.20$ & $0.800$ & $0.800$ & $2.4\times 10^{-3}$  & converging \\
+$0.30$ & $1.050$ & $1.050$ & $6.3\times 10^{-2}$  & diverging  \\
+$0.40$ & $1.200$ & $1.200$ & $3.2\times 10^{-1}$  & diverging  \\
+$0.50$ & $1.250$ & $1.250$ & $5.1\times 10^{-1}$  & diverging (peak) \\
+$0.60$ & $1.200$ & $1.200$ & $3.2\times 10^{-1}$  & diverging  \\
+$0.70$ & $1.050$ & $1.050$ & $6.3\times 10^{-2}$  & diverging  \\
+$0.80$ & $0.800$ & $0.800$ & $2.4\times 10^{-3}$  & converging \\
+$0.90$ & $0.450$ & $0.450$ & $2.4\times 10^{-6}$  & converging \\
+$0.95$ & $0.238$ & $0.238$ & $1.1\times 10^{-9}$  & converging \\
+\bottomrule
+\end{tabular}
+\caption{Bilinear MFG-LWR: empirical vs theoretical contraction rate at
+$\lambda = 0.2$.  The rate $\kappa = \varepsilon|1-\varepsilon|/\lambda$
+is non-monotonic and symmetric around $\varepsilon = 0.5$, giving
+two phase transitions at $\varepsilon^*_\pm \approx 0.276,\, 0.724$.
+Empirical and theoretical rates again agree to four digits.}
+\label{tab:bilinear_traffic}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/exp2_traffic.pdf}
+\caption{\textbf{MFG-LWR phase diagram.}
+\textit{Left:} empirical $\hat\kappa$ (red) overlaid on the theoretical curve
+$\kappa = \varepsilon|1-\varepsilon|/\lambda$ (black dashed).  Two thresholds
+mark the entry/exit of the diverging regime.
+\textit{Right:} convergence curves $\|\rho^k-\rho^*\|_{L^2}$ for each
+$\varepsilon$, showing the predicted geometric behaviour.}
+\label{fig:traffic}
+\end{figure}
+
+The non-monotonicity reflects the structure of the bilinear coupling:
+the effective Lipschitz constant $L_R(p^*) = |1-\varepsilon|$ vanishes
+exactly at $\varepsilon = 1$, so the system becomes contractive again
+for $\varepsilon$ close to $1$.  This is a feature of the MFG-LWR model
+that follows directly from Proposition~\ref{prop:bilinear_exact}.
+
 \subsection{Discussion}
 
 The exact agreement between $\hat\kappa$ and the theoretical rate

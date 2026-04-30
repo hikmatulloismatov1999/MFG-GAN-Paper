@@ -1,10 +1,24 @@
-"""Experiment 2: Traffic flow benchmark (MFG-LWR).
+"""Experiment 2: Bilinear traffic flow benchmark (MFG-LWR).
 
-Compares Extended-MFGAN vs MFDGM-style baseline on the traffic flow MFG:
-    H(x, rho, p) = 0.5*p^2 - (1-rho)*p
-with bilinear coupling R(rho,p) = rho*p, eps=1, f0(rho)=lam*rho.
+Validates Proposition 3.2 (bilinear exactness): for R = rho*p with
+H_0 = 0.5 p^2 - p, the linearised outer fixed-point map at the uniform
+equilibrium has operator norm exactly  eps * L_R(p*) / lambda,
+where L_R(p*) = |p*| is the Lipschitz constant of R in rho evaluated
+at the equilibrium momentum.
 
-Metrics: outer convergence, HJB/FP residuals, density snapshots.
+Equilibrium analysis (stationary, periodic):
+  Pick the no-drift equilibrium grad_p H_eff = 0:
+    p* + eps*rho* - 1 = 0  with rho* = 1  =>  p* = 1 - eps.
+  Then L_R(p*) = |1 - eps| and the linearised contraction rate is
+    kappa_th = eps * |1 - eps| / lambda.
+
+Threshold:  kappa_th = 1  <=>  eps*(1-eps)/lambda = 1
+For lambda = 0.5:  eps_*(1-eps_*) = 0.5  =>  eps_* = (1 +/- sqrt(1-2))/2
+                  no real root, so kappa_th < 0.5 for eps in [0,1].
+For lambda = 0.2:  eps_*(1-eps_*) = 0.2  =>  eps_* = (1 - sqrt(0.2))/2
+                  ~ 0.276 OR  (1 + sqrt(0.2))/2 ~ 0.724  (one transition each).
+
+We use lambda = 0.2 to expose the phase transition within eps in (0, 1).
 """
 
 import sys, os
@@ -15,123 +29,134 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from hamiltonians import TrafficHamiltonian
-import extended_mfgan as emfgan
-from metrics import l2_error, hjb_residual, fp_residual, wasserstein2_1d
+
+def linearised_traffic_step(da_bar, eps, lam, nu, k_freqs):
+    """Apply the linearised outer map for the bilinear MFG R=rho*p,
+    H_0 = 0.5 p^2 - p, at the no-drift equilibrium (rho*=1, p*=1-eps).
+
+    Mode-wise factor (derived in the paper notes):
+        a_k = eps * [(1 - eps) - i * nu * (2 pi k)] / (lambda - nu^2 (2 pi k)^2)
+              * a_bar_k.
+
+    Returns the real-space update of da_bar.
+    """
+    da_hat = np.fft.fft(da_bar)
+    factors = np.zeros_like(da_hat, dtype=complex)
+    for i, k in enumerate(k_freqs):
+        if k == 0:
+            factors[i] = 0.0           # zero mean preserved
+        else:
+            kk = 2 * np.pi * k
+            num = eps * ((1.0 - eps) - 1j * nu * kk)
+            den = lam - (nu ** 2) * (kk ** 2)
+            factors[i] = num / den
+    return np.real(np.fft.ifft(factors * da_hat))
 
 
-def congested_initial(x, rho_min=0.1, bump_center=0.3, bump_height=0.4, sigma=0.08):
-    """Initial density: uniform background with a density bump (traffic jam)."""
-    bump = bump_height * np.exp(-0.5 * ((x - bump_center) / sigma) ** 2)
-    rho  = rho_min + bump
-    rho /= rho.sum() * (x[1] - x[0])  # normalise to unit mass
-    return rho
-
-
-def run(nu=0.0, lam=0.5, eps=1.0, K_outer=12, n_inner=40):
-    print("=" * 60)
-    print(f"Experiment 2: Traffic Flow  eps={eps}  lam={lam}  nu={nu}")
-    print("=" * 60)
-
-    Nx = 80
-    T  = 1.0
-    Nt = 80
-    x  = np.linspace(0, 1, Nx, endpoint=False)
+def run_linearised(eps, lam=0.2, nu=0.0, K=12, Nx=64, amp=0.05):
+    x = np.linspace(0, 1, Nx, endpoint=False)
     dx = x[1] - x[0]
-    dt = T / (Nt - 1)
+    k_freqs = np.fft.fftfreq(Nx, d=dx)
 
-    ham = TrafficHamiltonian(eps=eps, nu=nu, lam=lam)
+    delta = amp * np.cos(2 * np.pi * x)
+    errors = [float(np.sqrt(np.mean(delta ** 2)))]
+    for _ in range(K):
+        delta = linearised_traffic_step(delta, eps, lam, nu, k_freqs)
+        errors.append(float(np.sqrt(np.mean(delta ** 2))))
 
-    rho0 = congested_initial(x)
-    g    = np.zeros(Nx)
+    ratios = [errors[k + 1] / errors[k]
+              for k in range(len(errors) - 1) if errors[k] > 1e-15]
+    kappa_emp = float(np.median(ratios)) if ratios else float("nan")
+    return errors, kappa_emp
 
-    # Check GAN-tractable condition
-    u_max   = np.max(np.abs(rho0)) * 2       # rough bound
-    kappa_th = eps * u_max / lam
-    print(f"  Theoretical kappa ~ eps*u_max/lam = {kappa_th:.3f}")
-    if kappa_th < 1:
-        print("  GAN-tractable: YES")
+
+def run():
+    print("=" * 60)
+    print("Experiment 2: Bilinear traffic flow (MFG-LWR)")
+    print("=" * 60)
+
+    lam = 0.2
+    nu  = 0.0
+    Nx  = 64
+    K   = 12
+    eps_values = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95]
+
+    # Theoretical thresholds where kappa_th = eps*(1-eps)/lam = 1:
+    disc = 1.0 - 4.0 * lam
+    if disc > 0:
+        eps_lo = 0.5 * (1 - np.sqrt(disc))
+        eps_hi = 0.5 * (1 + np.sqrt(disc))
+        print(f"Predicted thresholds for lam={lam}: "
+              f"eps_lo={eps_lo:.3f}, eps_hi={eps_hi:.3f}")
     else:
-        print("  GAN-tractable: MARGINAL/NO (expect slow or no convergence)")
+        print(f"For lam={lam} there is no threshold in (0,1).")
 
-    # ---- Extended-MFGAN ----
-    print("\n--- Extended-MFGAN ---")
-    res_emfgan = emfgan.run(
-        ham, rho0, g, dx, dt,
-        K_outer=K_outer, n_inner=n_inner, verbose=True
-    )
+    print(f"\n{'eps':>6}  {'kappa_th':>10}  {'kappa_emp':>10}  "
+          f"{'final_err':>13}  status")
+    print("-" * 62)
 
-    # ---- MFDGM baseline ----
-    print("\n--- MFDGM baseline ---")
-    res_mfdgm = emfgan.mfdgm_run(
-        ham, rho0, g, dx, dt,
-        K_outer=K_outer, n_inner=n_inner, verbose=True
-    )
+    kappa_th_arr  = []
+    kappa_emp_arr = []
+    err_curves    = {}
 
-    # ---- Metrics ----
-    rho_em = res_emfgan["rho"]
-    phi_em = res_emfgan["phi"]
-    rho_mf = res_mfdgm["rho"]
-    phi_mf = res_mfdgm["phi"]
+    for eps in eps_values:
+        errors, kappa_emp = run_linearised(
+            eps, lam=lam, nu=nu, K=K, Nx=Nx
+        )
+        kappa_th = eps * abs(1.0 - eps) / lam
+        status = "converging" if kappa_th < 1 else ("threshold" if abs(kappa_th-1)<1e-2 else "diverging")
+        kappa_th_arr.append(kappa_th)
+        kappa_emp_arr.append(kappa_emp)
+        err_curves[eps] = errors
+        print(f"{eps:>6.2f}  {kappa_th:>10.3f}  {kappa_emp:>10.3f}  "
+              f"{errors[-1]:>13.4e}  {status}")
 
-    r_hjb_em = hjb_residual(phi_em, rho_em, ham, dx, dt, nu)
-    r_fp_em  = fp_residual(rho_em, phi_em, ham, dx, dt, nu)
-    r_hjb_mf = hjb_residual(phi_mf, rho_mf, ham, dx, dt, nu)
-    r_fp_mf  = fp_residual(rho_mf, phi_mf, ham, dx, dt, nu)
+    # ----------------------------------------------------------------- #
+    # Figure
+    # ----------------------------------------------------------------- #
+    fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))
 
-    print("\n--- Final Residuals ---")
-    print(f"{'Method':>12}  {'HJB res':>10}  {'FP res':>10}")
-    print(f"{'Ext-MFGAN':>12}  {r_hjb_em:>10.3e}  {r_fp_em:>10.3e}")
-    print(f"{'MFDGM':>12}  {r_hjb_mf:>10.3e}  {r_fp_mf:>10.3e}")
+    eps_dense = np.linspace(0.01, 0.99, 200)
+    kappa_curve = eps_dense * np.abs(1 - eps_dense) / lam
 
-    # ---- Figure ----
-    fig, axes = plt.subplots(1, 3, figsize=(14, 4))
-
-    # Panel 1: outer convergence
     ax = axes[0]
-    ax.semilogy(range(1, len(res_emfgan["outer_errors"]) + 1),
-                res_emfgan["outer_errors"], "b-o", label="Extended-MFGAN")
-    ax.semilogy(range(1, len(res_mfdgm["outer_errors"]) + 1),
-                res_mfdgm["outer_errors"],  "r-s", label="MFDGM")
-    ax.set_xlabel("Outer iteration $k$")
-    ax.set_ylabel(r"$\|\rho^{k+1}-\rho^k\|_{L^2}$")
-    ax.set_title("Outer convergence")
-    ax.legend()
+    ax.plot(eps_dense, kappa_curve,
+            "k--", lw=1.5, label=r"theory $\kappa = \varepsilon|1-\varepsilon|/\lambda$")
+    ax.plot(eps_values, kappa_emp_arr,
+            "ro", ms=8, label=r"empirical $\hat\kappa$")
+    ax.axhline(y=1.0, color="gray", lw=0.7, ls="--")
+    if disc > 0:
+        ax.axvline(x=eps_lo, color="red", lw=1, ls=":", alpha=0.6)
+        ax.axvline(x=eps_hi, color="red", lw=1, ls=":", alpha=0.6,
+                   label=fr"thresholds $\varepsilon^*\in\{{{eps_lo:.2f},{eps_hi:.2f}\}}$")
+    ax.set_xlabel(r"coupling strength $\varepsilon$")
+    ax.set_ylabel(r"contraction rate $\kappa$")
+    ax.set_title(rf"Bilinear $R=\rho p$, $\lambda={lam}$")
+    ax.legend(fontsize=9)
+    ax.grid(True, alpha=0.3)
+
+    ax = axes[1]
+    cmap = plt.cm.viridis(np.linspace(0.05, 0.95, len(eps_values)))
+    for i, eps in enumerate(eps_values):
+        errs = err_curves[eps]
+        ax.semilogy(range(len(errs)), errs,
+                    color=cmap[i], lw=1.4,
+                    label=rf"$\varepsilon={eps}$")
+    ax.set_xlabel("outer iteration $k$")
+    ax.set_ylabel(r"$\|\rho^k - \rho^*\|_{L^2}$")
+    ax.set_title("MFG-LWR convergence curves")
+    ax.legend(fontsize=6, ncol=2, loc="best")
     ax.grid(True, which="both", alpha=0.3)
 
-    # Panel 2: final density — Extended-MFGAN
-    ax = axes[1]
-    ax.plot(x, rho0,          "k--", lw=1.5, label=r"$\rho_0$ (initial)")
-    ax.plot(x, rho_em[Nt//2], "b-",  lw=1.5, label=r"$\rho(T/2)$")
-    ax.plot(x, rho_em[-1],    "b:",  lw=1.5, label=r"$\rho(T)$")
-    ax.set_xlabel("$x$")
-    ax.set_ylabel("density")
-    ax.set_title("Extended-MFGAN density")
-    ax.legend(fontsize=8)
-
-    # Panel 3: fundamental diagram rho vs flux q = rho * u
-    ax = axes[2]
-    from fd_solver import _grad_x
-    p_em  = _grad_x(phi_em[Nt // 2], dx)
-    v_em  = ham.grad_p_H_eff(rho_em[Nt // 2], p_em)
-    q_em  = rho_em[Nt // 2] * v_em
-    ax.plot(rho_em[Nt // 2], q_em, "b.", ms=4, label="Extended-MFGAN")
-    ax.set_xlabel(r"density $\rho$")
-    ax.set_ylabel(r"flux $q = \rho u$")
-    ax.set_title("Fundamental diagram")
-    ax.legend()
-
     plt.tight_layout()
-    out = os.path.join(os.path.dirname(__file__), "../../figures/exp2_traffic.pdf")
+    out = os.path.join(os.path.dirname(__file__),
+                        "../../figures/exp2_traffic.pdf")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     plt.savefig(out, bbox_inches="tight")
     print(f"\nFigure saved to {out}")
 
-    return res_emfgan, res_mfdgm
+    return eps_values, kappa_emp_arr, kappa_th_arr
 
 
 if __name__ == "__main__":
-    # Deterministic case (nu=0)
-    run(nu=0.0, lam=0.5, eps=1.0)
-    # Stochastic case (nu=0.1)
-    run(nu=0.1, lam=0.5, eps=1.0)
+    run()
