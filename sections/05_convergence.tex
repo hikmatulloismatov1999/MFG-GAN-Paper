@@ -31,9 +31,20 @@ $R : \Omega \times \R \times \R^d \to \R$ is Lipschitz in both $\rho$ and $p$:
 \end{assumption}
 
 \begin{assumption}[Bounded densities]\label{ass:bound}
-Solutions satisfy $\rho \in L^\infty((0,T)\times\Omega)$ with
-$\norm{\rho}_{L^\infty} \leq \rho_{\max}$.
+Solutions satisfy the \emph{non-vacuum condition}: there exist constants
+$0 < \rho_{\min} \leq \rho_{\max} < \infty$ such that
+\[
+  \rho_{\min} \;\leq\; \rho(t,x) \;\leq\; \rho_{\max}
+  \qquad \text{a.e.\ on } (0,T)\times\Omega.
+\]
 \end{assumption}
+\begin{remark}
+The lower bound $\rho_{\min} > 0$ rules out vacuum regions.
+It is standard in congestion-type MFGs and in kinetic traffic models,
+where a strictly positive background density is physically natural.
+When $L_{R,p} = 0$ (i.e.\ $R$ is independent of $p$), only the
+upper bound $\rho_{\max}$ is used and $\rho_{\min}$ plays no role.
+\end{remark}
 
 \begin{assumption}[Unique sub-problem solution]\label{ass:unique}
 For each frozen $\bar\rho \in L^\infty$, the separable MFG with effective
@@ -46,20 +57,23 @@ $(\varphi_{\bar\rho},\rho_{\bar\rho}) \in W^{1,2}\times W^{1,2}$.
 
 \begin{definition}[GAN-tractable condition]\label{def:tractable_full}
 A weakly non-separable Hamiltonian with parameters
-$(c_0, \lambda, L_R, L_{R,p}, \rho_{\max})$ is \emph{GAN-tractable} if
+$(c_0, \lambda, L_R, L_{R,p}, \rho_{\min}, \rho_{\max})$ is
+\emph{GAN-tractable} if
 \begin{equation}\label{eq:gan_tractable}
   \kappa \;\coloneqq\; \frac{\eps\, L_R}{\lambda}
   \;<\; 1
   \qquad \text{and} \qquad
-  \eps\, L_{R,p}\, \rho_{\max} \;<\; c_0.
+  \eps\, L_{R,p}\, \rho_{\max} \;<\; c_0\,\rho_{\min}.
 \end{equation}
 \end{definition}
 
 \noindent The first condition controls the $\rho$-coupling strength relative to
-monotonicity; the second ensures the $p$-variation of $R$ is absorbed by the
-strong convexity of $H_0$.
-Both reduce to a single condition $\eps L_R < \lambda$ when $R$ is
-independent of $p$ (i.e., $L_{R,p} = 0$).
+monotonicity; it determines the convergence rate $\kappa$.
+The second condition ensures that the $p$-variation of $R$ is dominated by
+the strong convexity of $H_0$; it depends on the density contrast
+$\rho_{\max}/\rho_{\min}$ and is vacuous when $L_{R,p} = 0$.
+Both conditions reduce to $\eps L_R < \lambda$ alone when $R$ is
+independent of $p$.
 
 \subsection{Main Theorem}
 
@@ -92,8 +106,8 @@ under perturbation of the Hamiltonian.
 Let $(\varphi_1,\rho_1)$ and $(\varphi_2,\rho_2)$ be solutions to two
 separable MFG systems sharing the same $f_0$, $\rho_0$, $g$, but with
 effective Hamiltonians $H^1(x,p)$ and $H^2(x,p)$ respectively.
-Under \Cref{ass:base,ass:mono,ass:bound} and
-$\eps\, L_{R,p}\,\rho_{\max} < c_0$, we have
+Under \Cref{ass:base,ass:mono,ass:bound} and the second GAN-tractable
+condition $\eps\, L_{R,p}\,\rho_{\max} < c_0\,\rho_{\min}$, we have
 \begin{equation}\label{eq:stability}
   \lambda\, \norm{\delta\rho}^2_{L^2}
   \;\leq\;
@@ -224,21 +238,32 @@ By \Cref{ass:lip} (Lipschitz in $\rho$) and Cauchy-Schwarz:
 \end{equation}
 
 \textit{Bounding term (ii):}
-By \Cref{ass:lip,ass:bound} and Young's inequality with parameter $\mu > 0$:
+By \Cref{ass:lip,ass:bound} ($|\nabla_p R| \leq L_{R,p}$ and $\rho_i \leq \rho_{\max}$):
 \begin{equation}\label{eq:p_bound}
   \bigl|\text{(ii)}\bigr|
-  \leq \eps\, L_{R,p}\,\rho_{\max}\int_\Omega |\delta p|^2\, dx
-  \;\leq\;
-  \frac{\eps\, L_{R,p}\,\rho_{\max}}{c_0}
-  \cdot c_0\int_\Omega|\delta p|^2\, dx.
+  \leq \eps\, L_{R,p}\,\rho_{\max}\int_\Omega |\delta p|^2\, dx.
 \end{equation}
-Under the GAN-tractable condition $\eps\, L_{R,p}\,\rho_{\max} < c_0$,
-term (ii) is absorbed by \eqref{eq:convex_bound}:
+
+\textit{Absorption of term (ii) into $A_0 + C_0$:}
+The non-vacuum condition in \Cref{ass:bound} gives $\rho_1 + \rho_2 \geq 2\rho_{\min}$,
+so \eqref{eq:convex_bound} yields the stronger lower bound
+\begin{equation}\label{eq:convex_lower}
+  A_0 + C_0
+  \;\leq\; -\frac{c_0}{2}\int_\Omega (\rho_1+\rho_2)|\delta p|^2\,dx
+  \;\leq\; -c_0\,\rho_{\min}\int_\Omega |\delta p|^2\,dx.
+\end{equation}
+Combining \eqref{eq:p_bound} and \eqref{eq:convex_lower}, and using the
+second GAN-tractable condition $\eps\, L_{R,p}\,\rho_{\max} < c_0\,\rho_{\min}$:
 \begin{equation}\label{eq:absorbed}
   A_0 + C_0 + \eps(A_R + C_R)_{\text{(ii)}}
-  \leq -\frac{c_0 - \eps L_{R,p}\rho_{\max}}{2}\int_\Omega(\rho_1+\rho_2)|\delta p|^2\, dx
-  \leq 0.
+  \;\leq\;
+  -\bigl(c_0\,\rho_{\min} - \eps\, L_{R,p}\,\rho_{\max}\bigr)
+   \int_\Omega |\delta p|^2\,dx
+  \;\leq\; 0.
 \end{equation}
+The factor $c_0\rho_{\min} - \eps L_{R,p}\rho_{\max} > 0$ by assumption,
+confirming that the $p$-variation of $R$ is strictly dominated by the
+strong convexity of $H_0$.
 
 \paragraph{Step 6: Conclude.}
 Combining \eqref{eq:balance}, \eqref{eq:mono_bound}, \eqref{eq:split},
@@ -287,16 +312,19 @@ GAN-tractability reduces to $\eps\, L_R < \lambda$ alone.
 For the MFG-LWR traffic Hamiltonian $H(x,\rho,p)
 = \tfrac{1}{2}\norm{p}^2 - (1-\rho)p$, we have
 $R(x,\rho,p) = \rho\cdot p$, so
-$L_R = \norm{p}_\infty \leq u_{\max}$ and $L_{R,p} = \rho_{\max} = \rho_{\mathrm{jam}}$.
-With $H_0(x,p) = \tfrac{1}{2}\norm{p}^2 - p$ (strong convexity constant $c_0 = 1$),
-the GAN-tractable condition \eqref{eq:gan_tractable} becomes:
-\[
+$L_R = u_{\max}$ (physically bounded speed) and
+$L_{R,p} = \rho_{\mathrm{jam}}$ ($= \rho_{\max}$ for traffic).
+With $H_0(x,p) = \tfrac{1}{2}\norm{p}^2 - p$ (strong convexity constant $c_0 = 1$)
+and the non-vacuum condition $\rho \geq \rho_{\min} > 0$,
+the GAN-tractable conditions \eqref{eq:gan_tractable} become:
+\begin{equation}\label{eq:traffic_condition}
   \eps\, \frac{u_{\max}}{\lambda} < 1
   \qquad \text{and} \qquad
-  \eps\, \rho_{\mathrm{jam}} < 1.
-\]
-With $u_{\max} = \rho_{\mathrm{jam}} = 1$ (standard normalization),
-both conditions reduce to $\eps\, \max(1/\lambda,\, 1) < 1$.
+  \eps\, \frac{\rho_{\mathrm{jam}}^2}{\rho_{\min}} < 1.
+\end{equation}
+The convergence rate is $\kappa = \eps\, u_{\max}/\lambda$.
+With standard normalization $u_{\max} = \rho_{\mathrm{jam}} = 1$,
+both conditions reduce to $\eps < \min(\lambda,\, \rho_{\min})$.
 \end{corollary}
 
 \subsection{Convergence with Approximate Inner Solves}

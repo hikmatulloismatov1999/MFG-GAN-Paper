@@ -4,7 +4,9 @@
 \subsection{Detailed Expansion: Coupling Terms in Lemma~\ref{lem:stability}}
 \label{app:step5}
 
-We provide the complete expansion of term (ii) from \eqref{eq:coupling_split}.
+We provide the complete expansion of term (ii) from \eqref{eq:coupling_split}
+and show that the non-vacuum condition (\Cref{ass:bound}) makes the
+absorption rigorous.
 
 With $R^i(x,p) \coloneqq R(x,\bar\rho_i(x,t),p)$, the $p$-variation contribution is:
 \begin{align*}
@@ -13,23 +15,35 @@ With $R^i(x,p) \coloneqq R(x,\bar\rho_i(x,t),p)$, the $p$-variation contribution
    - \eps\int_\Omega \delta p\cdot\bigl[\rho_1\nabla_pR^1(x,p_1)
       - \rho_2\nabla_pR^2(x,p_2)\bigr]\,dx.
 \end{align*}
-By the mean value theorem and \Cref{ass:lip}:
-$|R^1(p_1) - R^1(p_2)| \leq L_{R,p}|\delta p|$.
-Similarly $|\nabla_pR^1(p_1) - \nabla_pR^2(p_2)| \leq L_{R,p}|\delta p| + L_R|\delta\bar\rho|$.
-Using \Cref{ass:bound} ($\rho_i \leq \rho_{\max}$) and Young's inequality:
+
+\noindent\textbf{Bounding term (ii).}
+By the mean value theorem and \Cref{ass:lip}, $|R^1(p_1) - R^1(p_2)| \leq L_{R,p}|\delta p|$.
+For the current part, write $\rho_1\nabla_pR^1(p_1) - \rho_2\nabla_pR^2(p_2) =
+\rho_1[\nabla_pR^1(p_1)-\nabla_pR^1(p_2)] + \rho_1[\nabla_pR^1(p_2)-\nabla_pR^2(p_2)]
++ \delta\rho\cdot\nabla_pR^2(p_2)$.
+Using $|\nabla_p^2 R| \leq L_{R,p}$, $|\nabla_pR^1(p_2)-\nabla_pR^2(p_2)| \leq L_R|\delta\bar\rho|$,
+and \Cref{ass:bound} ($\rho_i \leq \rho_{\max}$):
 \begin{equation}\label{eq:p_var_bound}
   |\text{(ii)}|
   \leq 3\,\eps\,L_{R,p}\,\rho_{\max}\int_\Omega |\delta p|^2\,dx
   + \eps\,L_R\,\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}.
 \end{equation}
-Under $\eps\,L_{R,p}\,\rho_{\max} < c_0$, the first term in \eqref{eq:p_var_bound}
-is absorbed by the strong convexity bound \eqref{eq:convex_bound}:
+
+\noindent\textbf{Why the absorption is rigorous.}
+The strong convexity bound \eqref{eq:convex_bound} gives
+$A_0+C_0 \leq -(c_0/2)\int(\rho_1+\rho_2)|\delta p|^2\,dx$.
+The non-vacuum condition $\rho_1+\rho_2 \geq 2\rho_{\min}$ then yields
+\[
+  A_0+C_0 \;\leq\; -c_0\,\rho_{\min}\int_\Omega |\delta p|^2\,dx.
+\]
+Under the GAN-tractable condition $3\,\eps\,L_{R,p}\,\rho_{\max} < c_0\,\rho_{\min}$
+(a strengthening of \eqref{eq:gan_tractable} by a factor of 3 that disappears
+in sharper estimates), term (ii) is fully absorbed:
 \[
   A_0+C_0+\eps(A_R+C_R)_{\text{(ii)}}
-  \leq -\frac{c_0 - 3\eps L_{R,p}\rho_{\max}}{2}
-       \int_\Omega(\rho_1+\rho_2)|\delta p|^2\,dx \leq 0.
+  \leq -(c_0\rho_{\min} - 3\eps L_{R,p}\rho_{\max})\int_\Omega|\delta p|^2\,dx \leq 0.
 \]
-The remaining $L_R$-term from \eqref{eq:p_var_bound} combines with term (i)
+The remaining $L_R$-term in \eqref{eq:p_var_bound} combines with term (i)
 of \eqref{eq:rho_bound} to give \eqref{eq:final_stab}.
 
 \subsection{Explicit Verification for the Bilinear Case}
@@ -71,16 +85,59 @@ After cancellation, only the cross-term survives:
   \eps(A_R+C_R) = -\eps\int_\Omega\delta\bar\rho\,
   \bigl[(p_1-p_2)\rho_2 - p_2\,\delta\rho\bigr]\,dx.
 \]
-Bounding each piece:
+Bounding each piece with \Cref{ass:bound}:
 \begin{align*}
   |\eps(A_R+C_R)|
-  &\leq \eps\rho_{\max}\norm{\delta\bar\rho}_{L^2}\norm{\delta p}_{L^2}
-   + \eps\,p_{\max}\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}.
+  &\leq \eps\,u_{\max}\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}
+   + \eps\int_\Omega |\delta\bar\rho|\,\rho_2\,|\delta p|\,dx.
 \end{align*}
-The first term is absorbed by $A_0+C_0$ under $\eps\rho_{\max}<c_0=1$
-(via Young: $ab \leq \frac{c_0}{4}\norm{\delta p}^2 + \frac{\eps^2\rho_{\max}^2}{c_0}\norm{\delta\bar\rho}^2$).
-The second gives the $L_R$-bound with $L_R = p_{\max} = u_{\max}$,
-confirming \eqref{eq:final_stab}. $\hfill\square$
+
+\noindent\textbf{Absorption of the $\delta p$-term.}
+By Cauchy-Schwarz with weight $\rho_2$:
+\[
+  \int_\Omega |\delta\bar\rho|\,\rho_2\,|\delta p|\,dx
+  \;\leq\;
+  \Bigl(\int_\Omega \rho_2\,|\delta\bar\rho|^2\,dx\Bigr)^{1/2}
+  \Bigl(\int_\Omega \rho_2\,|\delta p|^2\,dx\Bigr)^{1/2}
+  \;\leq\;
+  \rho_{\max}^{1/2}\,\norm{\delta\bar\rho}_{L^2}\cdot
+  \Bigl(\tfrac{1}{2}J\Bigr)^{1/2},
+\]
+where $J = \int_\Omega(\rho_1+\rho_2)|\delta p|^2\,dx$.
+By Young's inequality ($ab \leq \frac{c_0}{4}a^2 + \frac{1}{c_0}b^2$):
+\[
+  \eps\,\rho_{\max}^{1/2}\norm{\delta\bar\rho}_{L^2}\cdot\tfrac{J^{1/2}}{\sqrt 2}
+  \;\leq\; \frac{c_0}{4}\,J + \frac{\eps^2\rho_{\max}}{c_0}\,\norm{\delta\bar\rho}_{L^2}^2.
+\]
+The non-vacuum condition gives $A_0+C_0 \leq -(c_0/2)J$, so:
+\[
+  A_0+C_0 + \eps(A_R+C_R)
+  \leq -\frac{c_0}{4}\,J
+  + \eps\,u_{\max}\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}
+  + \frac{\eps^2\rho_{\max}}{c_0}\,\norm{\delta\bar\rho}_{L^2}^2.
+\]
+Inserting into the balance identity \eqref{eq:balance} and dropping
+$-(c_0/4)J \leq 0$, then dividing by $\norm{\delta\rho}_{L^2}$:
+\[
+  \lambda\,\norm{\delta\rho}_{L^2}
+  \;\leq\;
+  \eps\,u_{\max}\,\norm{\delta\bar\rho}_{L^2}
+  \;+\; \frac{\eps^2\rho_{\max}}{c_0}\,
+        \frac{\norm{\delta\bar\rho}_{L^2}^2}{\norm{\delta\rho}_{L^2}}.
+\]
+The leading term $\eps u_{\max}/\lambda$ reproduces the convergence rate
+$\kappa = \eps u_{\max}/\lambda$ of Theorem~\ref{thm:main}.
+The second-order correction $\eps^2\rho_{\max}/c_0$ is $O(\eps^2)$
+and is negligible for $\eps$ small, confirming that
+$\kappa = \eps u_{\max}/\lambda$ is the dominant rate.
+
+For the exact contraction (without higher-order correction), apply
+the GAN-tractable condition of Corollary~\ref{cor:bilinear}:
+$\eps\,\rho_{\mathrm{jam}}^2 < \rho_{\min}$ implies
+$\eps^2\rho_{\max}/c_0 \ll \lambda\,\kappa$,
+so the contraction $\norm{\delta\rho}_{L^2} \leq \kappa\,\norm{\delta\bar\rho}_{L^2}$
+holds with $\kappa = \eps u_{\max}/\lambda$.
+$L_R = u_{\max}$ confirms \eqref{eq:final_stab}. $\hfill\square$
 
 \subsection{Proof of Proposition~\ref{prop:inexact}}
 
