@@ -3,7 +3,7 @@
 
 Mean Field Games (MFGs) \citep{lasry2007mean, huang2006large} have emerged as
 a fundamental tool for modeling the collective behavior of large populations
-of rational agents — from autonomous vehicles navigating congested roads
+of rational agents, from autonomous vehicles navigating congested roads
 \citep{huang2019mfg} to investors competing in financial markets
 \citep{carmona2018probabilistic} and agents in industrial and engineering systems.
 At equilibrium, each agent plays optimally against the aggregate effect of the
@@ -23,14 +23,14 @@ in the field.
 
 \paragraph{The power and limits of GAN-based solvers.}
 A major advance came with the observation that, when the Hamiltonian is
-\emph{separable} — i.e., when $H(x,\rho,p) = H_0(x,p) - f_0(x,\rho)$,
-decoupling dynamics from congestion — the MFG system can be reformulated
-as a min-max saddle-point problem \citep{cao2021connecting}.
+\emph{separable}, i.e., $H(x,\rho,p) = H_0(x,p) - f_0(x,\rho)$,
+the MFG system can be reformulated as a min-max saddle-point problem
+\citep{cao2021connecting}.
 This connects MFGs structurally to Wasserstein GANs, enabling
 algorithms such as APAC-Net \citep{lin2021apac} and MFGANs
 \citep{ruthotto2020machine} that learn the equilibrium density
 \emph{distributionally} (via a generator network) and converge in the
-Wasserstein metric — a strictly stronger guarantee than pointwise approximation.
+Wasserstein metric, a strictly stronger guarantee than pointwise approximation.
 
 However, the separability assumption is not merely a technical convenience:
 it is a hard structural requirement.
@@ -56,12 +56,12 @@ achieves only $L^p$ ($p<2$) convergence with no explicit rate,
 and loses the Wasserstein-level guarantees that make GAN methods
 statistically and geometrically meaningful.
 The state of the art thus faces a stark dichotomy:
-GAN methods are powerful but restricted;
+GAN methods are powerful but restricted, while
 physics-informed methods are general but weaker.
 
 \paragraph{This paper: resolving the dichotomy.}
-We show that this dichotomy is not fundamental — it is a consequence of
-treating the non-separable Hamiltonian as monolithic.
+We show that this dichotomy is not fundamental.
+It is a consequence of treating the non-separable Hamiltonian as monolithic.
 Our key insight is elementary: \emph{if the population density $\rho$ is
 temporarily frozen, any non-separable Hamiltonian becomes separable.}
 This observation turns the non-separable MFG into a sequence of separable
@@ -72,7 +72,7 @@ To make this precise, we introduce the class of
 \emph{weakly non-separable Hamiltonians}, where the coupling between $\rho$
 and $p$ is parameterized by a strength $\eps \geq 0$.
 We prove that, when this coupling is controlled by the Lasry-Lions monotonicity
-of the game — a condition we call the \emph{GAN-tractable regime} — the
+of the game (a condition we call the \emph{GAN-tractable regime}), the
 fixed-point iteration is a contraction in the Wasserstein-2 metric,
 with an explicit geometric convergence rate.
 This yields the first rigorous characterization of when GAN-based methods
@@ -116,6 +116,8 @@ provably outperform physics-informed approaches, exposing a sharp
 \paragraph{Paper organization.}
 \Cref{sec:prelim} reviews MFGs, GAN-based solvers, and MFDGM, and
 formalizes the gap between them.
+\Cref{sec:related} positions our contribution within the deep-learning MFG
+literature.
 \Cref{sec:weak} introduces weakly non-separable Hamiltonians and the
 GAN-tractable regime.
 \Cref{sec:algorithm} presents the Extended-MFGAN algorithm.

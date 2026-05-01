@@ -10,11 +10,18 @@ separating the regime where GAN methods are provably superior from the
 regime where physics-informed methods should be preferred.
 
 \paragraph{Limitations.}
-The GAN-tractable condition $\eps L_R < \lambda$ is sufficient for
-contraction but may not be necessary; the exact boundary of the GAN-tractable
-regime remains an open question. The analysis also assumes exact inner GAN
-solves; the bias introduced by finite inner iterations is bounded in
-\Cref{prop:inexact}, but a tighter treatment would be of interest.
+The contraction theorem covers densities bounded away from vacuum
+($\rho \geq \rho_{\min} > 0$), and the second GAN-tractable condition
+$\eps L_{R,p}\rho_{\max} < c_0\rho_{\min}$ depends on the density contrast;
+problems with very sharp density gradients are outside the analysis.
+The numerical validation is conducted in the linearised regime around the
+uniform equilibrium, where Propositions \ref{prop:bilinear_exact} and
+\ref{prop:necessity} establish that the rate is exactly attained.
+A fully nonlinear PDE-level study, and a comparison against MFDGM at the
+implementation level, are left for future work.
+The analysis also assumes exact inner GAN solves; the bias from finite
+inner iterations is bounded in \Cref{prop:inexact}, but a tighter
+treatment would be of interest.
 
 \paragraph{Future directions.}
 Several extensions are natural.
