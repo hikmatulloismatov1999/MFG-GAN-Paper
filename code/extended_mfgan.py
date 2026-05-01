@@ -88,15 +88,18 @@ def run(ham, rho0, g, dx, dt, T_steps,
 def mfdgm_run(ham, rho0, g, dx, dt, T_steps,
               K_outer=15, n_inner=30, tol_inner=1e-6,
               damping=0.3, rho_true=None, verbose=True):
-    """MFDGM-style baseline: direct fictitious play on the FULL H.
+    """Picard baseline (NOT a faithful MFDGM implementation).
 
-    Equivalent to Extended-MFGAN but uses rho^k (the CURRENT iterate)
-    rather than rho_bar (a separately frozen copy) inside H.
-    For non-separable H this introduces a coupled solve at each step.
-
-    We implement it as: solve the inner loop with the rho from the *previous*
-    full solve (Gauss-Seidel style), i.e. the outer Picard iteration but
-    applied to the FULL Hamiltonian.  This is how MFDGM operates.
+    A faithful MFDGM \\citep{assouline2023deep} parameterises both
+    rho and phi as neural networks and minimises the joint HJB+FP
+    residual; that requires a full PINN training loop and is left to
+    future work.  This routine is kept as a Picard-on-full-H baseline
+    for code-level comparison: it runs the same inner FD solve as
+    Extended-MFGAN but updates rho_bar to the most recent outer
+    iterate rather than freezing it.  For density-only coupling and
+    for inner solves that converge to the SAME fixed point on each
+    outer step, the two outer iterations coincide; for non-separable
+    couplings they can differ.
     """
     Nx = len(rho0)
     Nt = T_steps

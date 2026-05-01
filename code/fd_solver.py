@@ -38,12 +38,21 @@ def solve_hjb(ham, rho_for_Heff, rho_for_f0, g, dx, dt, nu):
     return phi
 
 
-def _hjb_step_lf(phi_next, rho_Heff, rho_f0, ham, dx, dt, nu):
-    """One backward step of HJB with Lax-Friedrichs viscosity, sub-stepped if needed."""
+def _hjb_step_lf(phi_next, rho_Heff, rho_f0, ham, dx, dt, nu, max_substeps=50):
+    """One backward step of HJB with Lax-Friedrichs viscosity, sub-stepped if needed.
+    Falls back to ``max_substeps`` if the requested substep count is non-finite
+    (which happens after a numerical blow-up); the caller should detect non-finite
+    output and abort.
+    """
     p_est = _grad_x_central(phi_next, dx)
+    if not np.isfinite(phi_next).all():
+        return phi_next  # propagate NaN out, let caller handle
     v_est = ham.grad_p_H_eff(rho_Heff, p_est)
-    alpha = max(float(np.max(np.abs(v_est))), 1e-6)
-    n_sub = max(1, int(np.ceil(dt * alpha / (0.5 * dx))))
+    alpha_raw = float(np.max(np.abs(v_est)))
+    if not np.isfinite(alpha_raw):
+        return np.full_like(phi_next, np.nan)
+    alpha = max(alpha_raw, 1e-6)
+    n_sub = min(max_substeps, max(1, int(np.ceil(dt * alpha / (0.5 * dx)))))
     dt_sub = dt / n_sub
 
     phi = phi_next.copy()
@@ -85,11 +94,16 @@ def _fp_step(rho_n, rho_bar_n, phi_n, ham, dx, dt, nu, mass_target):
     We discretize using conservative upwind on faces i+1/2.
     """
     p = _grad_x_central(phi_n, dx)
+    if not np.isfinite(phi_n).all():
+        return np.full_like(rho_n, np.nan)
     v = ham.grad_p_H_eff(rho_bar_n, p)
     u = -v  # physical agent velocity
-
-    alpha = max(float(np.max(np.abs(u))), 1e-6)
-    n_sub = max(1, int(np.ceil(dt * alpha / (0.5 * dx))))
+    alpha_raw = float(np.max(np.abs(u)))
+    if not np.isfinite(alpha_raw):
+        return np.full_like(rho_n, np.nan)
+    alpha = max(alpha_raw, 1e-6)
+    max_substeps = 50
+    n_sub = min(max_substeps, max(1, int(np.ceil(dt * alpha / (0.5 * dx)))))
     dt_sub = dt / n_sub
 
     rho = rho_n.copy()
@@ -129,10 +143,14 @@ def inner_solve(ham, rho_bar, rho0, g, dx, dt, nu,
     phi = np.zeros((Nt, Nx))
     residuals = []
 
-    for _ in range(n_inner):
+    for it in range(n_inner):
         # HJB: H_eff uses frozen rho_bar, f0 uses CURRENT density iterate
         phi_new = solve_hjb(ham, rho_bar, rho, g, dx, dt, nu)
         rho_new = solve_fp(ham, rho_bar, phi_new, rho0, dx, dt, nu)
+        # Bail out if values explode (NaN / inf)
+        if not (np.isfinite(phi_new).all() and np.isfinite(rho_new).all()):
+            residuals.append(float("inf"))
+            break
         # Damped update
         rho_next = (1 - damping) * rho + damping * rho_new
         res = float(np.sqrt(np.mean((rho_next - rho) ** 2)) * dx)

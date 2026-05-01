@@ -16,9 +16,10 @@ $\eps L_{R,p}\rho_{\max} < c_0\rho_{\min}$ depends on the density contrast;
 problems with very sharp density gradients are outside the analysis.
 The numerical validation is conducted in the linearised regime around the
 uniform equilibrium, where Propositions \ref{prop:bilinear_exact} and
-\ref{prop:necessity} establish that the rate is exactly attained.
-A fully nonlinear PDE-level study, and a comparison against MFDGM at the
-implementation level, are left for future work.
+\ref{prop:necessity} establish that the rate is exactly attained;
+a fully nonlinear neural-network implementation of the inner GAN solver,
+and a head-to-head benchmark against MFDGM as a complete pipeline,
+are natural next steps.
 The analysis also assumes exact inner GAN solves; the bias from finite
 inner iterations is bounded in \Cref{prop:inexact}, but a tighter
 treatment would be of interest.
