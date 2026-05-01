@@ -32,6 +32,21 @@ It is analogous to a spectral gap condition in the theory of contractive
 fixed-point iterations.
 \end{remark}
 
+\begin{remark}[Two versions of the GAN-tractable condition]
+\label{rem:two_versions}
+\Cref{def:tractable} is the simplified condition under which the density
+contracts at rate $\kappa = \eps L_R/\lambda$.
+It is sufficient when the coupling residual $R$ is independent of the
+momentum $p$ (density-only coupling: $L_{R,p} = 0$).
+For general $R(x,\rho,p)$ that also depends on $p$, the full convergence
+analysis in \Cref{sec:convergence} introduces a second
+companion condition $\eps L_{R,p}\rho_{\max} < c_0\rho_{\min}$
+(\Cref{def:tractable_full}) which ensures that the $p$-variation of $R$
+is dominated by the strong convexity of $H_0$.
+We use \Cref{def:tractable} in this section for clarity of exposition;
+the formal main theorem is stated under \Cref{def:tractable_full}.
+\end{remark}
+
 \subsection{Examples of Coupling Residuals}
 
 \begin{table}[h]
