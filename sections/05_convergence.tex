@@ -345,19 +345,13 @@ Iterate and sum the geometric series.
 
 \subsection{Comparison to MFDGM Convergence}
 
-\begin{table}[h]
-\centering
-\begin{tabular}{lccc}
-\toprule
-& MFDGM \citep{assouline2023deep} & \textbf{Extended-MFGAN (ours)} \\
-\midrule
-Non-separable $H$ & Yes & Weak regime \\
-Convergence metric & $L^p$, $p < 2$ & $L^2$ and $\mathcal{W}_2$ \\
-Explicit rate & No & Yes: $\kappa^k$ \\
-$\rho$ representation & Pointwise NN & Generative (distributional) \\
-Wasserstein bound & No & Yes \\
-\bottomrule
-\end{tabular}
-\caption{Formal comparison: MFDGM vs Extended-MFGAN.}
-\label{tab:convergence}
-\end{table}
+Compared to MFDGM \citep{assouline2023deep}, which converges only in
+$L^p$ for $p < 2$ and provides no explicit rate, \Cref{thm:main} is
+strictly stronger within the GAN-tractable regime: it gives
+$L^2$ and $\mathcal{W}_2$ convergence with the explicit geometric
+rate $\kappa^k = (\eps L_R/\lambda)^k$.
+The trade-off is that MFDGM applies to arbitrary non-separable
+Hamiltonians, whereas \Cref{thm:main} requires the GAN-tractable
+condition.
+\Cref{tab:comparison} in \Cref{sec:prelim} summarises the comparison
+across all three methods.
