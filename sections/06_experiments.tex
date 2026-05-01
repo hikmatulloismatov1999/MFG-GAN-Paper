@@ -72,62 +72,6 @@ for $\varepsilon > 0$ the geometric decay rate matches theory.}
 \label{fig:separable}
 \end{figure}
 
-\subsection{Phase transition (Experiment 3)}
-
-We sweep $\varepsilon \in \{0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 1.1, 1.3, 1.5\}$
-with $\lambda = L_R = 1$, so the GAN-tractable threshold is $\varepsilon^* = 1$.
-Table~\ref{tab:phase_transition} reports, for each $\varepsilon$,
-the theoretical contraction rate $\kappa = \varepsilon L_R/\lambda$,
-the empirical contraction rate $\hat\kappa$ measured as the median of
-consecutive ratios $\|\rho^{k+1}-\rho^*\|/\|\rho^k-\rho^*\|$,
-and the final error $\|\rho^{12}-\rho^*\|_{L^2}$.
-
-\begin{table}[h]
-\centering
-\begin{tabular}{rrrlc}
-\toprule
-$\varepsilon$ & $\kappa = \varepsilon L_R/\lambda$ & $\hat\kappa$
-              & $\|\rho^{12}-\rho^*\|_{L^2}$ & status \\
-\midrule
-$0.1$ & $0.100$ & $0.100$ & $3.5\times 10^{-14}$ & converging \\
-$0.3$ & $0.300$ & $0.300$ & $1.9\times 10^{-8}$  & converging \\
-$0.5$ & $0.500$ & $0.500$ & $8.6\times 10^{-6}$  & converging \\
-$0.7$ & $0.700$ & $0.700$ & $4.9\times 10^{-4}$  & converging \\
-$0.9$ & $0.900$ & $0.900$ & $1.0\times 10^{-2}$  & converging \\
-$1.0$ & $1.000$ & $1.000$ & $3.5\times 10^{-2}$  & threshold  \\
-$1.1$ & $1.100$ & $1.100$ & $1.1\times 10^{-1}$  & diverging  \\
-$1.3$ & $1.300$ & $1.300$ & $8.2\times 10^{-1}$  & diverging  \\
-$1.5$ & $1.500$ & $1.500$ & $4.6\times 10^{0}$   & diverging  \\
-\bottomrule
-\end{tabular}
-\caption{Phase transition: empirical vs theoretical contraction rate.
-The empirical rate $\hat\kappa$ matches the theoretical rate $\kappa = \varepsilon L_R/\lambda$
-to all reported decimal places, confirming the sharpness claim of
-Proposition~\ref{prop:bilinear_exact} and the necessity claim of
-Proposition~\ref{prop:necessity}.}
-\label{tab:phase_transition}
-\end{table}
-
-The match is exact across the full sweep: empirical and theoretical rates
-agree to four digits, and the transition between geometric decay
-($\varepsilon < 1$) and geometric growth ($\varepsilon > 1$) occurs precisely
-at $\varepsilon^* = 1$.
-This is direct empirical evidence for the sharpness of the GAN-tractable
-condition.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.95\textwidth]{figures/exp3_phase_transition.pdf}
-\caption{\textbf{Phase transition at $\varepsilon^* = \lambda/L_R = 1$.}
-\textit{Left:} empirical contraction rate $\hat\kappa$ (blue circles)
-overlaid on the theoretical bound $\kappa = \varepsilon L_R/\lambda$
-(black dashed); the two coincide exactly.
-\textit{Right:} outer-iteration error $\|\rho^k - \rho^*\|_{L^2}$ for each
-$\varepsilon$.  Geometric decay below threshold transitions sharply to
-geometric growth above.}
-\label{fig:phase_transition}
-\end{figure}
-
 \subsection{Bilinear traffic flow (Experiment 2)}
 
 We next validate the tightness claim of Proposition~\ref{prop:bilinear_exact}
@@ -191,6 +135,62 @@ the effective Lipschitz constant $L_R(p^*) = |1-\varepsilon|$ vanishes
 exactly at $\varepsilon = 1$, so the system becomes contractive again
 for $\varepsilon$ close to $1$.  This is a feature of the MFG-LWR model
 that follows directly from Proposition~\ref{prop:bilinear_exact}.
+
+\subsection{Phase transition (Experiment 3)}
+
+We sweep $\varepsilon \in \{0.1, 0.3, 0.5, 0.7, 0.9, 1.0, 1.1, 1.3, 1.5\}$
+with $\lambda = L_R = 1$, so the GAN-tractable threshold is $\varepsilon^* = 1$.
+Table~\ref{tab:phase_transition} reports, for each $\varepsilon$,
+the theoretical contraction rate $\kappa = \varepsilon L_R/\lambda$,
+the empirical contraction rate $\hat\kappa$ measured as the median of
+consecutive ratios $\|\rho^{k+1}-\rho^*\|/\|\rho^k-\rho^*\|$,
+and the final error $\|\rho^{12}-\rho^*\|_{L^2}$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{rrrlc}
+\toprule
+$\varepsilon$ & $\kappa = \varepsilon L_R/\lambda$ & $\hat\kappa$
+              & $\|\rho^{12}-\rho^*\|_{L^2}$ & status \\
+\midrule
+$0.1$ & $0.100$ & $0.100$ & $3.5\times 10^{-14}$ & converging \\
+$0.3$ & $0.300$ & $0.300$ & $1.9\times 10^{-8}$  & converging \\
+$0.5$ & $0.500$ & $0.500$ & $8.6\times 10^{-6}$  & converging \\
+$0.7$ & $0.700$ & $0.700$ & $4.9\times 10^{-4}$  & converging \\
+$0.9$ & $0.900$ & $0.900$ & $1.0\times 10^{-2}$  & converging \\
+$1.0$ & $1.000$ & $1.000$ & $3.5\times 10^{-2}$  & threshold  \\
+$1.1$ & $1.100$ & $1.100$ & $1.1\times 10^{-1}$  & diverging  \\
+$1.3$ & $1.300$ & $1.300$ & $8.2\times 10^{-1}$  & diverging  \\
+$1.5$ & $1.500$ & $1.500$ & $4.6\times 10^{0}$   & diverging  \\
+\bottomrule
+\end{tabular}
+\caption{Phase transition: empirical vs theoretical contraction rate.
+The empirical rate $\hat\kappa$ matches the theoretical rate $\kappa = \varepsilon L_R/\lambda$
+to all reported decimal places, confirming the sharpness claim of
+Proposition~\ref{prop:bilinear_exact} and the necessity claim of
+Proposition~\ref{prop:necessity}.}
+\label{tab:phase_transition}
+\end{table}
+
+The match is exact across the full sweep: empirical and theoretical rates
+agree to four digits, and the transition between geometric decay
+($\varepsilon < 1$) and geometric growth ($\varepsilon > 1$) occurs precisely
+at $\varepsilon^* = 1$.
+This is direct empirical evidence for the sharpness of the GAN-tractable
+condition.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{figures/exp3_phase_transition.pdf}
+\caption{\textbf{Phase transition at $\varepsilon^* = \lambda/L_R = 1$.}
+\textit{Left:} empirical contraction rate $\hat\kappa$ (blue circles)
+overlaid on the theoretical bound $\kappa = \varepsilon L_R/\lambda$
+(black dashed); the two coincide exactly.
+\textit{Right:} outer-iteration error $\|\rho^k - \rho^*\|_{L^2}$ for each
+$\varepsilon$.  Geometric decay below threshold transitions sharply to
+geometric growth above.}
+\label{fig:phase_transition}
+\end{figure}
 
 \subsection{Discussion}
 
