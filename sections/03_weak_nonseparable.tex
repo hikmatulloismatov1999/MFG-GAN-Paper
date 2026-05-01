@@ -144,10 +144,15 @@ of the GAN architecture used in the inner solver.
 
 \begin{proposition}[Necessity of the GAN-tractable condition]
 \label{prop:necessity}
-The condition $\eps L_R < \lambda$ is not merely sufficient: there exists
-a family of weakly non-separable MFGs parameterized by $\eps$ such that,
-for every $\eps L_R \geq \lambda$, the Extended-MFGAN outer iteration
-diverges for all starting points $\rho^0 \neq \rho^*$.
+The condition $\eps L_R < \lambda$ is not merely sufficient.
+There exists a family of weakly non-separable MFGs parameterized by
+$\eps$ such that, for every $\eps L_R \geq \lambda$, the linearisation
+of the Extended-MFGAN outer fixed-point map at the equilibrium $\rho^*$
+has operator norm $\geq 1$.
+Consequently, for every starting density in a neighbourhood of $\rho^*$
+with $\rho^0 \neq \rho^*$, the linearised iteration does not converge:
+it stagnates when $\eps L_R = \lambda$ and grows geometrically when
+$\eps L_R > \lambda$.
 \end{proposition}
 \begin{proof}
 Consider the ergodic MFG on the torus $\Omega = \mathbb{T}^d$ with
