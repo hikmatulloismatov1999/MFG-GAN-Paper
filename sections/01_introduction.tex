@@ -97,12 +97,20 @@ provably outperform physics-informed approaches, exposing a sharp
     We prove via a Lasry-Lions duality argument that the outer fixed-point
     iteration is a $\kappa$-contraction in $\mathcal{W}_2$ with explicit
     rate $\kappa = \eps L_R/\lambda < 1$, yielding the first Wasserstein
-    convergence guarantee for MFGs with non-separable Hamiltonians.
+    convergence guarantee with an explicit rate for any deep learning MFG
+    solver in the non-separable setting.
+
+  \item \textbf{Sharpness of the GAN-tractable condition.}
+    We prove that the rate $\kappa = \eps L_R/\lambda$ is tight in the
+    bilinear case, and that the condition $\eps L_R < \lambda$ is necessary:
+    we construct an explicit ergodic MFG for which the outer iteration
+    diverges from every starting point as soon as $\eps L_R \geq \lambda$.
 
   \item \textbf{Numerical validation.}
-    We demonstrate the method on the MFG-LWR traffic benchmark in both
-    deterministic and stochastic settings, characterize the predicted
-    phase transition experimentally, and show scalability to high dimensions.
+    Across three experiments (separable limit, bilinear MFG-LWR, density-only
+    sweep), the empirical contraction rate matches the theoretical rate
+    $\kappa = \eps L_R/\lambda$ to four digits, including a non-trivial
+    two-sided phase transition predicted for the bilinear MFG-LWR.
 \end{enumerate}
 
 \paragraph{Paper organization.}
