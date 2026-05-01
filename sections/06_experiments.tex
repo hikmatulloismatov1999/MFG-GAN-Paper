@@ -4,11 +4,15 @@
 We validate the main theoretical result by demonstrating the sharp phase
 transition predicted by Theorem~\ref{thm:main} and Propositions
 \ref{prop:bilinear_exact}--\ref{prop:necessity}.
-The experiments are run on the ergodic MFG on the torus
-$\Omega = \mathbb{T}$ with $H_0(p) = \tfrac{1}{2}p^2$,
-$f_0(\rho) = \lambda\rho$, and density-only coupling $R(x,\rho) = L_R\rho$,
-which is the canonical setting in which the linearised contraction rate
-is exactly $\kappa = \varepsilon L_R/\lambda$ (Proposition~\ref{prop:necessity}).
+All experiments are run on the ergodic MFG on the torus
+$\Omega = \mathbb{T}$ with $f_0(\rho) = \lambda\rho$.
+Experiments~1 (separable limit) and 3 (phase transition) use
+the density-only coupling $R(x,\rho) = L_R\rho$ with $H_0(p) = \tfrac{1}{2}p^2$;
+Experiment~2 uses the bilinear MFG-LWR Hamiltonian
+$H(x,\rho,p) = \tfrac{1}{2}p^2 - (1-\rho)p$.
+In each case, the linearised outer map at the uniform equilibrium has
+operator norm equal to the predicted rate, allowing a direct comparison
+of empirical and theoretical contraction.
 
 \subsection{Setup}
 
@@ -30,7 +34,7 @@ the outer map $K=12$ times.
 
 \subsection{Separable limit (Experiment 1)}
 
-We first verify the separable-limit observation in \Cref{sec:algorithm} (separable limit): when
+We first verify the separable-limit observation in \Cref{sec:algorithm}: when
 $\varepsilon = 0$ the effective Hamiltonian $H^k = H_0$ is independent
 of $\bar\rho$, so the outer fixed-point map is constant and Extended-MFGAN
 should converge in a single iteration.
