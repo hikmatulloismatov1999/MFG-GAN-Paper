@@ -227,41 +227,39 @@ is solving the system in high dimensions, which is where deep learning enters.
 %%  4. TWO FAMILIES
 %% =================================================================
 \begin{frame}{Two families of deep MFG solvers}
+\small
 \begin{columns}[T]
 \begin{column}{0.49\textwidth}
 \begin{tcolorbox}[colback=kaustblue!8, colframe=kaustblue,
-                  title=\textbf{GAN-based}, fonttitle=\bfseries\large]
-APAC-Net \cite{lin2021apac}, MFGAN \cite{ruthotto2020machine}\\[4pt]
-\textbf{Strengths:}
-\begin{itemize}
-  \item Generator parameterises $\rho$ \emph{distributionally}
-  \item Wasserstein convergence guarantee
+                  title=\textbf{GAN-based} \scriptsize(APAC-Net, MFGAN),
+                  fonttitle=\bfseries]
+\textbf{Strengths}
+\begin{itemize}\setlength\itemsep{1pt}
+  \item $\rho$ learned \emph{distributionally} via generator
+  \item Wasserstein convergence
 \end{itemize}
-\textbf{Weakness:} require \alert{separable} $H$:
-\[ H(x,\rho,p) = H_0(x,p) - f_0(x,\rho) \]
+\textbf{Weakness:} require \alert{separable} $H = H_0(x,p) - f_0(x,\rho)$.
 \end{tcolorbox}
 \end{column}
 \begin{column}{0.49\textwidth}
 \begin{tcolorbox}[colback=kaustteal!8, colframe=kaustteal,
-                  title=\textbf{Physics-informed}, fonttitle=\bfseries\large]
-MFDGM \cite{assouline2023deep}\\[4pt]
-\textbf{Strengths:}
-\begin{itemize}
+                  title=\textbf{Physics-informed} \scriptsize(MFDGM),
+                  fonttitle=\bfseries]
+\textbf{Strengths}
+\begin{itemize}\setlength\itemsep{1pt}
   \item Handles \emph{any} Hamiltonian
   \item Mature deep PDE machinery
 \end{itemize}
-\textbf{Weakness:} only \alert{$L^p$ pointwise} ($p<2$),\\
-\hphantom{Weakness:} \alert{no convergence rate}.
+\textbf{Weakness:} only \alert{$L^p$ pointwise} ($p<2$); \alert{no convergence rate}.
 \end{tcolorbox}
 \end{column}
 \end{columns}
 
-\vspace{0.4cm}
+\medskip
 \begin{center}
-\large
 \textbf{The dichotomy:} \;
-power \alert{or} generality, never both.\\[3pt]
-\small\teal{Our paper resolves the dichotomy in a precise weakly non-separable regime.}
+power \alert{or} generality, never both.\\
+\teal{We resolve it in a precise \emph{weakly non-separable} regime.}
 \end{center}
 \end{frame}
 
