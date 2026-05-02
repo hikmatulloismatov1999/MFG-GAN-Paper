@@ -66,6 +66,17 @@
 }
 
 %% =================================================================
+%%  Logo  (place kaust_logo.png or .pdf in figures/; graceful fallback if absent)
+%% =================================================================
+\newcommand{\kaustlogo}[1][1.6cm]{%
+  \IfFileExists{figures/kaust_logo.png}{\includegraphics[height=#1]{figures/kaust_logo.png}}{%
+    \IfFileExists{figures/kaust_logo.pdf}{\includegraphics[height=#1]{figures/kaust_logo.pdf}}{%
+      \fbox{\rule{0pt}{#1}\textsf{\small KAUST logo}}%  fallback placeholder
+    }%
+  }%
+}
+
+%% =================================================================
 %%  Title page
 %% =================================================================
 \title{Generative Adversarial Networks for\\Mean Field Games with Weakly\\Non-Separable Hamiltonians}
@@ -73,6 +84,7 @@
 \author{Hikmatullo Ismatov \and Diogo Gomes}
 \institute{King Abdullah University of Science and Technology}
 \date{\today}
+\titlegraphic{\hfill\kaustlogo[1.4cm]}
 
 \begin{document}
 
@@ -931,29 +943,27 @@ and engineering systems modelled by congestion-type MFGs.
 \begin{frame}[plain]
 \usebeamercolor[fg]{normal text}
 \centering
-\vspace{1cm}
-{\Huge \textbf{Thank you}}\\[0.6cm]
+\vspace{0.4cm}
+{\Huge \textbf{Thank you}}\\[2pt]
 {\Large Questions?}
 
-\vspace{1.3cm}
+\vspace{0.5cm}
+\textcolor{white!85!kaustblue}{\rule{0.35\textwidth}{0.6pt}}
+\vspace{0.4cm}
 
-\textit{Generative Adversarial Networks for Mean Field Games\\
-with Weakly Non-Separable Hamiltonians}
+{\itshape Generative Adversarial Networks for Mean Field Games\\
+with Weakly Non-Separable Hamiltonians}\\[10pt]
+
+Hikmatullo Ismatov \;\textbullet\; Diogo Gomes\\
+{\small\textsl{King Abdullah University of Science and Technology}}
 
 \vspace{0.5cm}
-Hikmatullo Ismatov  \quad and \quad  Diogo Gomes\\
-\textsl{King Abdullah University of Science and Technology}
+\kaustlogo[1.0cm]
 
-\vspace{1.0cm}
-
-Code, paper, slides:\\[3pt]
-{\small\ttfamily github.com/hikmatulloismatov1999/MFG-GAN-Paper}
-
-\vspace{0.4cm}
+\vspace{0.5cm}
+{\small Code, paper, slides:}\\[2pt]
+{\small\ttfamily github.com/hikmatulloismatov1999/MFG-GAN-Paper}\\[6pt]
 {\small\ttfamily hikmatullo.ismatov@kaust.edu.sa}
-
-\vspace{0.6cm}
-\textcolor{kaustgold}{\rule{0.4\textwidth}{1pt}}
 \end{frame}
 }
 
