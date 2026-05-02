@@ -1,3 +1,4 @@
+\PassOptionsToPackage{table,dvipsnames}{xcolor}
 \documentclass[10pt,aspectratio=169]{beamer}
 
 %% =================================================================
@@ -26,7 +27,10 @@
 \usepackage{amsmath, amssymb, amsthm, mathtools}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage[table]{xcolor}
+\usepackage{xcolor}  % options already passed via \PassOptionsToPackage
+\usepackage{pifont}  % provides \cmark, \xmark glyphs
+\newcommand{\cmark}{\textcolor{kaustteal!80!black}{\ding{51}}}
+\newcommand{\xmark}{\textcolor{accent}{\ding{55}}}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, decorations.pathreplacing}
 \usepackage{algorithm}
