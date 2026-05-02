@@ -66,12 +66,37 @@
 }
 
 %% =================================================================
-%%  Logo  (place kaust_logo.png or .pdf in figures/; graceful fallback if absent)
+%%  Logo  (drop kaust_logo.png or .pdf into figures/ to use the real one;
+%%         otherwise a TikZ replica is rendered automatically.)
 %% =================================================================
+%% KAUST brand colours (eggs + text)
+\definecolor{kaustEggYellow}{RGB}{240, 178, 60}
+\definecolor{kaustEggGreen}{RGB}{160, 195, 90}
+\definecolor{kaustEggOrange}{RGB}{220, 95, 70}
+\definecolor{kaustEggTeal}{RGB}{0, 152, 165}
+\definecolor{kaustTextPlum}{RGB}{120, 70, 100}
+
+\newcommand{\kaustlogotikz}[1][1.6cm]{%
+  \begin{tikzpicture}[baseline=(B.base), x=#1, y=#1]
+    %% Four eggs (rotated ovals) clustered around origin
+    \fill[kaustEggYellow] (-0.30, 0.32) ellipse [x radius=0.22, y radius=0.30, rotate=-25];
+    \fill[kaustEggGreen]  (-0.22,-0.20) ellipse [x radius=0.20, y radius=0.27, rotate=-65];
+    \fill[kaustEggOrange] ( 0.30, 0.20) ellipse [x radius=0.20, y radius=0.27, rotate= 25];
+    \fill[kaustEggTeal]   ( 0.18,-0.32) ellipse [x radius=0.20, y radius=0.27, rotate= 60];
+    %% Two-line "KAUST" + name
+    \node[anchor=west, inner sep=1pt] (B) at (0.65, 0.14)
+      {\textsf{\bfseries\color{kaustTextPlum}KAUST}};
+    \node[anchor=west, font=\scriptsize, inner sep=1pt] at (0.65,-0.18)
+      {\textsf{\color{kaustTextPlum}King Abdullah University of}};
+    \node[anchor=west, font=\scriptsize, inner sep=1pt] at (0.65,-0.34)
+      {\textsf{\color{kaustTextPlum}Science and Technology}};
+  \end{tikzpicture}%
+}
+
 \newcommand{\kaustlogo}[1][1.6cm]{%
   \IfFileExists{figures/kaust_logo.png}{\includegraphics[height=#1]{figures/kaust_logo.png}}{%
     \IfFileExists{figures/kaust_logo.pdf}{\includegraphics[height=#1]{figures/kaust_logo.pdf}}{%
-      \fbox{\rule{0pt}{#1}\textsf{\small KAUST logo}}%  fallback placeholder
+      \kaustlogotikz[#1]%
     }%
   }%
 }
