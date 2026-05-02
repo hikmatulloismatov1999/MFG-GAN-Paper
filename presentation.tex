@@ -208,19 +208,21 @@ At Nash equilibrium, $(\varphi, \rho)$ solves
 \end{column}
 \begin{column}{0.43\textwidth}
 \centering
-\begin{tikzpicture}[scale=0.85, font=\small]
-  \node[draw=kaustblue, fill=kaustblue!10, rounded corners, minimum width=3.6cm,
-        minimum height=1cm, align=center] (HJB)
-        at (0,1.6) {\textbf{HJB equation}\\(individual optimisation)};
-  \node[draw=kaustteal, fill=kaustteal!10, rounded corners, minimum width=3.6cm,
-        minimum height=1cm, align=center] (FP)
-        at (0,-0.4) {\textbf{Fokker-Planck}\\(population evolution)};
+\begin{tikzpicture}[scale=0.78, font=\small]
+  \node[draw=kaustblue, fill=kaustblue!10, rounded corners, minimum width=3.4cm,
+        minimum height=0.95cm, align=center] (HJB)
+        at (0,1.5) {\textbf{HJB equation}\\\footnotesize(individual optimisation)};
+  \node[draw=kaustteal, fill=kaustteal!10, rounded corners, minimum width=3.4cm,
+        minimum height=0.95cm, align=center] (FP)
+        at (0,-0.5) {\textbf{Fokker-Planck}\\\footnotesize(population evolution)};
+  %% downward arrow (HJB -> FP) labelled INSIDE the boxes-gap (right side)
   \draw[-{Latex[length=2.5mm]}, kaustblue, thick]
-        (HJB.east) to[bend left=30] node[right, font=\scriptsize, kaustblue]
-        {$\nabla\varphi$ defines drift} (FP.east);
+        ([xshift=1cm]HJB.south) -- node[right=2pt, font=\scriptsize, kaustblue, align=left]
+        {$\nabla\varphi$\\drift} ([xshift=1cm]FP.north);
+  %% upward arrow (FP -> HJB) labelled INSIDE the boxes-gap (left side)
   \draw[-{Latex[length=2.5mm]}, kaustteal, thick]
-        (FP.west) to[bend left=30] node[left, font=\scriptsize, kaustteal]
-        {$\rho$ enters cost} (HJB.west);
+        ([xshift=-1cm]FP.north) -- node[left=2pt, font=\scriptsize, kaustteal, align=right]
+        {$\rho$\\in cost} ([xshift=-1cm]HJB.south);
 \end{tikzpicture}
 \end{column}
 \end{columns}
