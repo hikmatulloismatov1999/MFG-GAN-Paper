@@ -26,7 +26,7 @@
 \usepackage{amsmath, amssymb, amsthm, mathtools}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{xcolor}
+\usepackage[table]{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, decorations.pathreplacing}
 \usepackage{algorithm}
@@ -667,10 +667,8 @@ the actual rate.
 %%  13. EXPERIMENT 1
 %% =================================================================
 \begin{frame}{Experiment 1: separable limit ($\eps = 0$)}
-\textbf{Predicted:} at $\eps = 0$, one outer iteration suffices.
-
-\vspace{0.3cm}
-\begin{center}
+Predicted: at $\eps = 0$, one outer iteration suffices.
+\begin{center}\small
 \begin{tabular}{rrll}
 \toprule
 $\eps$ & $\kappa$ & $\norm{\rho^1-\rho^*}_{L^2}$ & $\norm{\rho^8-\rho^*}_{L^2}$ \\
@@ -683,11 +681,10 @@ $0.5$ & $0.5$ & $7.1\!\times\!10^{-2}$ & $5.5\!\times\!10^{-4}$ \\
 \bottomrule
 \end{tabular}
 \end{center}
-
-\vspace{0.4cm}
 \begin{itemize}
-  \item At $\eps=0$, error collapses to machine zero in \alert{one step}.
-  \item For $\eps>0$, geometric decay matches theory exactly.
+\setlength\itemsep{1pt}
+  \item At $\eps=0$: error collapses to machine zero in \alert{one step}.
+  \item For $\eps>0$: geometric decay matches theory exactly.
   \item Confirms Extended-MFGAN $=$ APAC-Net when $\eps=0$.
 \end{itemize}
 \end{frame}
