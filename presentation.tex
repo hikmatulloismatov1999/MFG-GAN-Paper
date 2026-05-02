@@ -1,314 +1,682 @@
 \documentclass[10pt,aspectratio=169]{beamer}
 
-%% Theme
-\usetheme{Madrid}
-\usecolortheme{seahorse}
-\setbeamertemplate{navigation symbols}{}
-\setbeamertemplate{headline}{}
+%% =================================================================
+%%  Theme — Metropolis (modern, clean, popular at ML / math venues)
+%% =================================================================
+\usetheme[progressbar=frametitle, numbering=fraction, sectionpage=progressbar]{metropolis}
 
-%% Packages
+%% Custom KAUST-inspired palette
+\definecolor{kaustblue}{RGB}{0, 113, 159}
+\definecolor{kaustteal}{RGB}{0, 152, 165}
+\definecolor{kaustgold}{RGB}{220, 162, 14}
+\definecolor{darkbg}{RGB}{30, 36, 50}
+\definecolor{accent}{RGB}{217, 80, 64}
+
+\setbeamercolor{frametitle}{bg=kaustblue, fg=white}
+\setbeamercolor{progress bar}{fg=kaustteal, bg=kaustteal!30}
+\setbeamercolor{title separator}{fg=kaustteal}
+\setbeamercolor{block title}{bg=kaustblue, fg=white}
+\setbeamercolor{block body}{bg=kaustblue!8}
+\setbeamercolor{alerted text}{fg=accent}
+\setbeamercolor{example text}{fg=kaustteal}
+
+%% =================================================================
+%%  Packages
+%% =================================================================
 \usepackage{amsmath, amssymb, amsthm, mathtools}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, decorations.pathreplacing}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{tcolorbox}
+\tcbuselibrary{theorems, skins}
 
-%% Theorem environments (use beamer's, not the article ones)
-\setbeamertemplate{theorems}[numbered]
+%% Show speaker notes alongside the slides on the second monitor when
+%% presenting.  Comment out for a clean slides-only PDF.
+% \setbeameroption{show notes on second screen=right}
 
-%% Operators
+%% =================================================================
+%%  Macros
+%% =================================================================
 \newcommand{\Div}{\operatorname{div}}
 \newcommand{\R}{\mathbb{R}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\W}{\mathcal{W}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\eps}{\varepsilon}
+\newcommand{\highlight}[1]{\textcolor{accent}{\textbf{#1}}}
+\newcommand{\teal}[1]{\textcolor{kaustteal}{#1}}
+\newcommand{\gold}[1]{\textcolor{kaustgold}{#1}}
 
-%% Title page
-\title[Extended-MFGAN]{Generative Adversarial Networks for Mean Field Games\\
-                       with Weakly Non-Separable Hamiltonians}
-\author[Ismatov \& Gomes]{Hikmatullo Ismatov \and Diogo Gomes}
-\institute[KAUST]{King Abdullah University of Science and Technology (KAUST)}
+%% Pretty boxed theorem display
+\newtcolorbox{resultbox}[1][]{
+  enhanced, colback=kaustblue!8, colframe=kaustblue,
+  boxrule=0.6pt, arc=2pt, left=8pt, right=8pt, top=6pt, bottom=6pt,
+  fonttitle=\bfseries, coltitle=white, colbacktitle=kaustblue,
+  attach boxed title to top left={yshift=-2mm, xshift=4mm},
+  boxed title style={arc=2pt, boxrule=0pt}, #1
+}
+
+%% =================================================================
+%%  Title page
+%% =================================================================
+\title{Generative Adversarial Networks for\\Mean Field Games with Weakly\\Non-Separable Hamiltonians}
+\subtitle{A bridge between distributional and physics-informed deep solvers}
+\author{Hikmatullo Ismatov \and Diogo Gomes}
+\institute{King Abdullah University of Science and Technology}
 \date{\today}
 
-%% =================================================================
 \begin{document}
 
-\begin{frame}
-  \titlepage
+%% =================================================================
+%%  1. TITLE
+%% =================================================================
+\begin{frame}[plain]
+  \maketitle
 \end{frame}
+
+\note{
+\textbf{Speaker} (15 sec):
+Good morning everyone. I am Hikmatullo Ismatov, joint work with my supervisor Diogo Gomes at KAUST.
+Today I will tell you about a new algorithm called Extended-MFGAN that brings
+together two communities working on Mean Field Games: the GAN-based deep learning
+community and the physics-informed deep learning community.
+The headline result is the first explicit and provably sharp convergence rate
+for a deep MFG solver in the non-separable setting.
+}
 
 %% =================================================================
-\section{Introduction}
+%%  2. ROADMAP
+%% =================================================================
+\begin{frame}{The talk in one slide}
+\begin{tcolorbox}[colback=kaustteal!8, colframe=kaustteal, arc=3pt]
+\centering\large
+\textbf{Two families of deep MFG solvers, irreconcilable so far.}\\
+\textbf{We show how to combine their strengths, and prove a sharp rate.}
+\end{tcolorbox}
 
-\begin{frame}{What is a Mean Field Game?}
-A large population of rational agents, each minimising
-\[
-  J(\alpha) = \E\Bigl[\int_0^T L(x_t, \alpha_t, \rho_t)\,dt + g(x_T,\rho_T)\Bigr]
-\]
-against the population distribution $\rho_t$.
-
-\medskip
-
-At Nash equilibrium, $(\varphi, \rho)$ satisfy the coupled system
-\begin{align*}
-  -\partial_t\varphi - \nu\Delta\varphi + H(x,\rho,\nabla\varphi) &= 0 \quad\text{(HJB)} \\
-  \partial_t\rho - \nu\Delta\rho - \Div(\rho\,\nabla_p H) &= 0 \quad\text{(FP)}
-\end{align*}
-
-\medskip
-
-\textbf{Applications:}
-autonomous traffic, financial markets, energy grids, multi-agent RL.
-
-\medskip
-
-\textbf{Computational challenge:}
-solving these in high dimensions is hard.
-\end{frame}
-
-\begin{frame}{Two families of deep-learning solvers}
+\vspace{0.4cm}
 \begin{columns}[t]
-\begin{column}{0.49\textwidth}
-\textbf{GAN-based} (APAC-Net, MFGAN)
-\begin{itemize}
-  \item Learns $\rho$ \emph{distributionally} via a generator
-  \item Wasserstein convergence
-  \item BUT requires \textbf{separable} $H$
-\end{itemize}
-
-\medskip
-\[
-  H(x,\rho,p) = H_0(x,p) - f_0(x,\rho)
-\]
-\emph{Decoupled}
+\begin{column}{0.32\textwidth}
+\centering
+\textcolor{kaustblue}{\large\textbf{Part 1}}\\[2pt]
+\emph{The dichotomy} \\[-2pt]
+GAN-based vs physics-informed
 \end{column}
-\begin{column}{0.49\textwidth}
-\textbf{Physics-informed} (MFDGM)
-\begin{itemize}
-  \item Minimises PDE residuals
-  \item Handles any $H$, separable or not
-  \item BUT $L^p$ pointwise only, no rate
-\end{itemize}
-
-\medskip
-\[
-  H(x,\rho,p) = ?
-\]
-\emph{General; e.g.\ traffic flow}
+\begin{column}{0.32\textwidth}
+\centering
+\textcolor{kaustblue}{\large\textbf{Part 2}}\\[2pt]
+\emph{Theory} \\[-2pt]
+Wasserstein-2 contraction\\
+with explicit rate $\kappa = \eps L_R/\lambda$
+\end{column}
+\begin{column}{0.32\textwidth}
+\centering
+\textcolor{kaustblue}{\large\textbf{Part 3}}\\[2pt]
+\emph{Validation} \\[-2pt]
+Three experiments matching\\theory to four digits
 \end{column}
 \end{columns}
 
-\medskip\hrule\medskip
-
-\textbf{The dichotomy:} powerful theory \emph{or} general applicability, never both.
-
-\medskip
-
-\textbf{Question:} can we keep distributional learning + Wasserstein guarantees
-\emph{and} extend to non-separable $H$?
+\vspace{0.4cm}
+\begin{center}
+\small\teal{30 minutes total — please interrupt with questions.}
+\end{center}
 \end{frame}
 
-\begin{frame}{Canonical hard example: MFG-LWR traffic flow}
-\[
-  H(x,\rho,p) = \tfrac{1}{2}\norm{p}^2 - (1-\rho)\,p
-\]
-
-The term $(1-\rho)p$ \textbf{couples} density and momentum. \\
-The Hopf-Lax formula breaks. \\
-APAC-Net cannot be applied. \\
-MFDGM works but with no convergence rate.
-
-\medskip
-
-\textbf{We will show:} this Hamiltonian, and a whole class around it,
-admits a \emph{provably convergent GAN-based solver} with explicit rate.
-\end{frame}
+\note{
+\textbf{Speaker} (45 sec):
+The talk has three parts.
+First I will explain the problem: why deep solvers for Mean Field Games today
+fall into two camps that cannot talk to each other. One camp is GAN-based, the
+other is physics-informed. Each has a fatal weakness.
+Second, I will show our solution: a contraction theorem in the Wasserstein-2 metric
+with an explicit and \emph{sharp} rate. The contraction rate is given by
+the ratio epsilon times L\_R over lambda. We will see exactly what these symbols mean.
+Third, three numerical experiments where the empirical contraction rate matches
+the theoretical prediction to four decimal places.
+The full talk is 30 minutes. Please interrupt with questions at any point.
+}
 
 %% =================================================================
-\section{Key idea}
+%%  3. WHAT IS AN MFG
+%% =================================================================
+\begin{frame}{What is a Mean Field Game?}
+A large population of \alert{rational agents}, each minimising a cost
+that depends on the population distribution.
 
-\begin{frame}{The key insight}
-\begin{block}{Observation}
-If $\rho$ is held fixed, any non-separable Hamiltonian becomes separable.
-\end{block}
-
-Decompose
-\[
-  H(x,\rho,p) = \underbrace{H_0(x,p) - f_0(x,\rho)}_{\text{separable base}}
-              + \eps \underbrace{R(x,\rho,p)}_{\text{coupling residual}}
-\]
-
-\textbf{Effective Hamiltonian} at iteration $k$:
-\[
-  H^k(x,p) := H_0(x,p) + \eps\, R(x, \rho^k, p)
-  \qquad \text{(separable in $(x,p)$!)}
-\]
+\vspace{0.3cm}
+\begin{columns}[c]
+\begin{column}{0.55\textwidth}
+At Nash equilibrium, $(\varphi, \rho)$ solves
+\begin{align*}
+  -\partial_t\varphi - \nu\Delta\varphi + H(x,\rho,\nabla\varphi) &= 0 \\
+  \partial_t\rho - \nu\Delta\rho - \Div(\rho\,\nabla_p H) &= 0
+\end{align*}
 
 \medskip
+\small
+\teal{$\varphi$:} value function (HJB, backward) \\
+\teal{$\rho$:} population density (FP, forward) \\
+\teal{$H$:} Hamiltonian, encodes cost \& interactions \\
+\teal{$\nu$:} diffusion (stochastic noise)
+\end{column}
+\begin{column}{0.43\textwidth}
+\centering
+\begin{tikzpicture}[scale=0.85, font=\small]
+  \node[draw=kaustblue, fill=kaustblue!10, rounded corners, minimum width=3.6cm,
+        minimum height=1cm, align=center] (HJB)
+        at (0,1.6) {\textbf{HJB equation}\\(individual optimisation)};
+  \node[draw=kaustteal, fill=kaustteal!10, rounded corners, minimum width=3.6cm,
+        minimum height=1cm, align=center] (FP)
+        at (0,-0.4) {\textbf{Fokker-Planck}\\(population evolution)};
+  \draw[-{Latex[length=2.5mm]}, kaustblue, thick]
+        (HJB.east) to[bend left=30] node[right, font=\scriptsize, kaustblue]
+        {$\nabla\varphi$ defines drift} (FP.east);
+  \draw[-{Latex[length=2.5mm]}, kaustteal, thick]
+        (FP.west) to[bend left=30] node[left, font=\scriptsize, kaustteal]
+        {$\rho$ enters cost} (HJB.west);
+\end{tikzpicture}
+\end{column}
+\end{columns}
 
-A GAN solver can be applied to each $H^k$.
+\vspace{0.2cm}
+\small
+\textbf{Applications:} autonomous traffic, financial markets, energy grids,
+multi-agent reinforcement learning.
 \end{frame}
 
-\begin{frame}{Weakly non-separable Hamiltonians}
-\begin{definition}[Weakly non-separable Hamiltonian]
-$H = H_0(x,p) - f_0(x,\rho) + \eps\, R(x,\rho,p)$ where:
+\note{
+\textbf{Speaker} (2 min):
+Mean Field Games model a continuum of rational agents. Each agent minimises
+a cost that depends on what the rest of the population is doing.
+At Nash equilibrium, no single agent can improve by changing strategy alone.
+Mathematically, the equilibrium is described by two coupled PDEs.
+The first is a Hamilton-Jacobi-Bellman equation, backward in time, governing
+each agent's value function phi. The second is a Fokker-Planck equation, forward
+in time, that propagates the population density rho.
+The two are coupled: the gradient of phi tells agents where to go, which sets the
+drift in the FP equation; and the density rho enters the cost in the HJB.
+The coupling object H is the Hamiltonian.
+This system shows up in autonomous traffic, financial markets, energy grids,
+and increasingly in multi-agent reinforcement learning. The computational challenge
+is solving the system in high dimensions, which is where deep learning enters.
+}
+
+%% =================================================================
+%%  4. TWO FAMILIES
+%% =================================================================
+\begin{frame}{Two families of deep MFG solvers}
+\begin{columns}[T]
+\begin{column}{0.49\textwidth}
+\begin{tcolorbox}[colback=kaustblue!8, colframe=kaustblue,
+                  title=\textbf{GAN-based}, fonttitle=\bfseries\large]
+APAC-Net \cite{lin2021apac}, MFGAN \cite{ruthotto2020machine}\\[4pt]
+\textbf{Strengths:}
 \begin{itemize}
-  \item $H_0$ strongly convex in $p$ (constant $c_0 > 0$)
-  \item $f_0$ Lasry-Lions monotone with constant $\lambda > 0$
-  \item $R$ Lipschitz in $\rho$ (constant $L_R$) and in $p$ (constant $L_{R,p}$)
+  \item Generator parameterises $\rho$ \emph{distributionally}
+  \item Wasserstein convergence guarantee
 \end{itemize}
-\end{definition}
+\textbf{Weakness:} require \alert{separable} $H$:
+\[ H(x,\rho,p) = H_0(x,p) - f_0(x,\rho) \]
+\end{tcolorbox}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{tcolorbox}[colback=kaustteal!8, colframe=kaustteal,
+                  title=\textbf{Physics-informed}, fonttitle=\bfseries\large]
+MFDGM \cite{assouline2023deep}\\[4pt]
+\textbf{Strengths:}
+\begin{itemize}
+  \item Handles \emph{any} Hamiltonian
+  \item Mature deep PDE machinery
+\end{itemize}
+\textbf{Weakness:} only \alert{$L^p$ pointwise} ($p<2$),\\
+\hphantom{Weakness:} \alert{no convergence rate}.
+\end{tcolorbox}
+\end{column}
+\end{columns}
 
-\bigskip
-
-\begin{block}{GAN-tractable regime}
-\[
-  \boxed{\;\eps\, L_R \;<\; \lambda\;}
-\]
-(Plus a companion condition $\eps L_{R,p}\rho_{\max} < c_0\rho_{\min}$
-when $R$ depends on $p$.)
-\end{block}
+\vspace{0.4cm}
+\begin{center}
+\large
+\textbf{The dichotomy:} \;
+power \alert{or} generality, never both.\\[3pt]
+\small\teal{Our paper resolves the dichotomy in a precise weakly non-separable regime.}
+\end{center}
 \end{frame}
 
-%% =================================================================
-\section{Algorithm}
+\note{
+\textbf{Speaker} (2 min):
+Existing deep solvers fall into two camps.
+On the left, GAN-based methods like APAC-Net and MFGAN. They learn the density rho
+distributionally through a generator network, like a Wasserstein GAN. They come with
+strong convergence guarantees in the Wasserstein metric. But they only work when the
+Hamiltonian is separable, meaning H splits as H\_0 of (x, p) minus f\_0 of (x, rho)
+with no joint dependence. This is a hard structural requirement, not a convenience.
+The Hopf formula that underlies their saddle-point reformulation breaks if there is
+joint dependence.
+On the right, physics-informed methods like MFDGM. They directly minimise PDE
+residuals using neural networks. They handle any Hamiltonian, separable or not.
+But they pay a price: only L\^{}p pointwise convergence for p less than two, and no
+explicit convergence rate at all.
+The dichotomy is real: power or generality, never both. Our paper shows that within
+a precise regime that we call weakly non-separable, you can have both.
+}
 
-\begin{frame}{Extended-MFGAN}
+%% =================================================================
+%%  5. HARD EXAMPLE
+%% =================================================================
+\begin{frame}{The canonical hard example: MFG-LWR}
+\begin{center}
+\Large
+\colorbox{kaustblue!8}{$\;H(x,\rho,p) = \dfrac{1}{2}\norm{p}^2 - (1-\rho)\,p\;$}
+\end{center}
+
+\vspace{0.3cm}
+\begin{itemize}
+  \item Models traffic flow on a road \cite{huang2019mfg}.
+  \item The term \alert{$(1-\rho)\,p$} couples density and momentum jointly.
+  \item APAC-Net \alert{cannot} be applied: the Hopf formula breaks.
+  \item MFDGM works, but with no rate.
+\end{itemize}
+
+\vspace{0.4cm}
+\begin{tcolorbox}[colback=accent!10, colframe=accent, arc=3pt]
+\centering
+\textbf{Question of this talk:} can we build a GAN-based solver
+that handles this Hamiltonian, with an \emph{explicit, sharp} convergence rate?
+\end{tcolorbox}
+\end{frame}
+
+\note{
+\textbf{Speaker} (1.5 min):
+Here is the canonical hard example. The MFG-LWR traffic flow Hamiltonian
+combines a kinetic-energy term, half p squared, with a coupling term,
+minus one minus rho times p. That second term has rho and p multiplied
+together. They are coupled. There is no way to write H as H\_0 of p
+minus f\_0 of rho.
+This Hamiltonian models a real situation: traffic on a highway. Density and
+momentum interact because cars slow down when the road is congested. So this
+matters for autonomous vehicles, congestion pricing, all of that.
+Because of the joint dependence, APAC-Net cannot be applied directly. The Hopf
+formula they rely on breaks. MFDGM handles it but you get no convergence rate.
+The question of this talk is: can we build a GAN-based solver that handles
+exactly this Hamiltonian, with an explicit, provably sharp convergence rate?
+The answer is yes, in a precise regime that we will define.
+}
+
+%% =================================================================
+%%  6. KEY INSIGHT
+%% =================================================================
+\begin{frame}{The key insight}
+\begin{tcolorbox}[colback=accent!8, colframe=accent, arc=4pt,
+                  fonttitle=\bfseries, title=One observation that changes everything]
+\large\centering
+If $\rho$ is held \emph{fixed}, any non-separable $H$ becomes \emph{separable}.
+\end{tcolorbox}
+
+\vspace{0.4cm}
+\begin{center}
+\begin{tikzpicture}[font=\small, node distance=0.5cm]
+  \node[draw=kaustblue, fill=kaustblue!10, rounded corners, minimum width=3cm,
+        minimum height=1.2cm, align=center] (full)
+        {\textbf{Full non-sep.\ MFG}\\$H(x,\rho,p)$};
+  \node[right=2cm of full, draw=kaustteal, fill=kaustteal!10, rounded corners,
+        minimum width=3cm, minimum height=1.2cm, align=center] (sub)
+        {\textbf{Separable subproblem}\\$H^k(x,p) = H_0 + \eps R(x,\rho^k,p)$};
+  \node[right=2cm of sub, draw=kaustgold, fill=kaustgold!10, rounded corners,
+        minimum width=3cm, minimum height=1.2cm, align=center] (out)
+        {\textbf{Solve via APAC-Net}\\get $\rho^{k+1}$};
+  \draw[-{Latex[length=3mm]}, ultra thick, kaustblue]
+       (full) -- node[above, font=\footnotesize\itshape] {freeze $\rho$ at $\rho^k$} (sub);
+  \draw[-{Latex[length=3mm]}, ultra thick, kaustteal]
+       (sub) -- node[above, font=\footnotesize\itshape] {separable!} (out);
+  \draw[-{Latex[length=3mm]}, ultra thick, kaustgold, dashed]
+       (out.south) to[bend left=40] node[below, font=\footnotesize\itshape]
+       {update $\rho^k \leftarrow \rho^{k+1}$, repeat} (full.south);
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.2cm}
+\begin{itemize}
+  \item Each iteration solves a \emph{separable} MFG; APAC-Net applies directly.
+  \item Question: \alert{when does the outer iteration converge, and how fast?}
+\end{itemize}
+\end{frame}
+
+\note{
+\textbf{Speaker} (2 min):
+Here is the key insight, and it is elementary.
+If you hold rho fixed, any non-separable Hamiltonian becomes separable.
+Look at the diagram. We start with the full non-separable MFG on the left.
+We freeze rho at the current iterate rho-k. Then the effective Hamiltonian
+H-k of x and p is just H-zero plus epsilon times R evaluated at rho-k.
+Crucially, this is now a function only of x and p. It is separable in the
+sense the GAN solvers require.
+So we can apply APAC-Net to the separable subproblem, get a new rho-k-plus-one,
+update, and repeat.
+This is essentially a Picard fixed-point iteration on the population density,
+where each step is one APAC-Net solve.
+The whole question of this paper is then: \emph{when does this outer iteration
+converge}, and \emph{how fast}? That is what the rest of the talk addresses.
+}
+
+%% =================================================================
+%%  7. WEAKLY NON-SEPARABLE
+%% =================================================================
+\begin{frame}{Weakly non-separable Hamiltonians}
+\begin{block}{Definition}
+$H$ is \emph{weakly non-separable with strength $\eps \geq 0$} if
+\[
+  H(x,\rho,p) = \underbrace{H_0(x,p)}_{\text{convex, }c_0\text{-strong}}
+              - \underbrace{f_0(x,\rho)}_{\substack{\text{Lasry-Lions}\\\text{monotone, const.\ }\lambda}}
+              + \;\eps\;\underbrace{R(x,\rho,p)}_{\substack{\text{Lipschitz}\\\text{const.\ }L_R, L_{R,p}}}
+\]
+\end{block}
+
+\vspace{0.2cm}
+
+\begin{itemize}
+  \item $\eps = 0$ recovers the classical \emph{separable} MFG.
+  \item Bilinear coupling $R = \rho\cdot p$ recovers the \emph{traffic flow} model.
+  \item Density-only coupling $R = R(x,\rho)$ has $L_{R,p} = 0$.
+\end{itemize}
+
+\vspace{0.2cm}
+
+\begin{tcolorbox}[colback=kaustteal!8, colframe=kaustteal,
+                  title=\textbf{GAN-tractable regime}, fonttitle=\bfseries]
+\centering\Large
+$\eps\, L_R \;<\; \lambda$
+\end{tcolorbox}
+\end{frame}
+
+\note{
+\textbf{Speaker} (2 min):
+Let me be precise about the class.
+A Hamiltonian is weakly non-separable with coupling strength epsilon if it
+decomposes into three pieces. First, a strongly convex base H-zero of x and p
+with convexity constant c-zero. Second, a Lasry-Lions monotone interaction
+f-zero of x and rho with monotonicity constant lambda. Third, a coupling
+residual R that is Lipschitz in rho with constant L-R and Lipschitz in p with
+constant L-R-p, scaled by epsilon.
+When epsilon equals zero, you recover the standard separable MFG. When R equals
+rho times p you recover the traffic flow model from earlier. When R depends only
+on rho, the constant L-R-p is zero.
+The single most important quantity is the box at the bottom: epsilon times L-R
+strictly less than lambda. We call this the \emph{GAN-tractable regime}.
+Intuitively: the coupling strength must be controlled by the restoring force
+of the monotone interaction. Below this threshold, our method works. Above it,
+it does not. We will see both halves of this in the next slides.
+}
+
+%% =================================================================
+%%  8. ALGORITHM
+%% =================================================================
+\begin{frame}{The Extended-MFGAN algorithm}
+\begin{tcolorbox}[colback=kaustblue!5, colframe=kaustblue, arc=3pt]
 \begin{algorithmic}[1]
+\Require Hamiltonian $H = H_0 - f_0 + \eps R$, GAN solver, outer iters $K$
 \State Initialise $\rho^0 \leftarrow \rho_0$
 \For{$k = 0, 1, \ldots, K-1$}
-  \State $H^k(x,p) \leftarrow H_0(x,p) + \eps\, R(x,\rho^k(x,t),p)$
-  \State \emph{Run inner GAN solver on the separable MFG with $H^k$:}
+  \State Build effective Hamiltonian:
+  $\;H^k(x,p) \leftarrow H_0(x,p) + \eps\, R(x,\rho^k(x,t),p)$
+  \State Run inner GAN on the separable MFG with $H^k$:
   \[
-    (\rho^{k+1}, \varphi^{k+1}) \leftarrow \textsc{APAC-Net}(H^k, f_0, g, \rho_0)
+    (\rho^{k+1}, \varphi^{k+1}) \leftarrow \textsc{APAC-Net}(H^k,\, f_0,\, g,\, \rho_0)
   \]
 \EndFor
 \State \Return $(\rho^K, \varphi^K)$
 \end{algorithmic}
+\end{tcolorbox}
 
-\medskip
-
-\textbf{Cost:}  $K \times $ (one APAC-Net run).
-\textbf{Number of outer iterations:}
-$K = \lceil \log(1/\delta)/\log(1/\kappa) \rceil$.
-
-\medskip
-
-\textbf{When $\eps = 0$:} $H^k = H_0$, one outer step suffices.
-\textbf{Reduces exactly to APAC-Net.}
+\vspace{0.4cm}
+\begin{columns}[t]
+\begin{column}{0.48\textwidth}
+\textcolor{kaustblue}{\textbf{Cost}}: $K$ APAC-Net runs.\\
+\textcolor{kaustblue}{\textbf{Outer iters needed}}:
+$K = \left\lceil \frac{\log(1/\delta)}{\log(1/\kappa)} \right\rceil$ for tolerance $\delta$.
+\end{column}
+\begin{column}{0.48\textwidth}
+\textcolor{kaustteal}{\textbf{Reduces to APAC-Net at $\eps=0$}}:\\
+$H^k \equiv H_0$, the outer loop converges in one step.
+\end{column}
+\end{columns}
 \end{frame}
 
-%% =================================================================
-\section{Main result}
+\note{
+\textbf{Speaker} (2 min):
+The algorithm is essentially this short pseudocode. Initialise rho-zero to be
+the initial density. Then for k from zero to K-minus-one: build the effective
+Hamiltonian H-k by plugging in the current rho-k into the coupling residual R.
+Then run APAC-Net on the resulting separable MFG. The output is rho-k-plus-one.
+Loop.
+The cost is K times one APAC-Net run.
+How many outer iterations do we need? Once we prove the geometric rate kappa,
+to reach tolerance delta we need K equal to the ceiling of log of one over
+delta divided by log of one over kappa. So K is small in practice.
+A nice sanity check: at epsilon equals zero, the effective Hamiltonian is just
+H-zero. There is no rho-bar dependence. The outer loop converges in literally
+one iteration. So Extended-MFGAN \emph{reduces exactly to APAC-Net} in the
+separable limit. We are interpolating between APAC-Net and the non-separable
+regime.
+}
 
-\begin{frame}{The contraction theorem}
-\begin{theorem}[Wasserstein-2 contraction]
+%% =================================================================
+%%  9. MAIN THEOREM
+%% =================================================================
+\begin{frame}{The main result}
+\begin{resultbox}[title=Theorem (Wasserstein-2 contraction)]
 Under the GAN-tractable condition $\eps L_R < \lambda$:
 \[
   \norm{\rho^{k+1} - \rho^*}_{L^2}
-  \;\leq\; \kappa\,\norm{\rho^k - \rho^*}_{L^2},
+  \;\;\leq\;\;
+  \kappa\;\norm{\rho^k - \rho^*}_{L^2},
   \qquad
-  \boxed{\;\kappa = \frac{\eps L_R}{\lambda}\;}
+  \boxed{\;\kappa = \dfrac{\eps\, L_R}{\lambda}\;}
 \]
-Consequently $\rho^k \to \rho^*$ in $\W_2$ at the geometric rate $\kappa^k$.
-\end{theorem}
+Consequently $\rho^k \to \rho^*$ in the Wasserstein-2 metric at the geometric
+rate $\kappa^k$.
+\end{resultbox}
 
-\bigskip
+\vspace{0.4cm}
+This is the \alert{first} explicit convergence rate for any deep-learning
+MFG solver in the non-separable setting.
 
-\textbf{First} explicit convergence rate for any deep-learning MFG solver
-in the non-separable setting.
+\vspace{0.3cm}
+
+\begin{itemize}
+  \item Both $L^2$ and $\W_2$ convergence (a strict improvement over MFDGM).
+  \item Rate is \emph{explicit}: depends only on the data $\eps, L_R, \lambda$.
+  \item In the next slide, we sketch the proof.
+\end{itemize}
 \end{frame}
 
-\begin{frame}{Proof idea: Lasry-Lions duality}
-Compute
-\[
-  \frac{d}{dt}\int_\Omega \delta\varphi \cdot \delta\rho\,dx,
-  \qquad
-  \delta\varphi := \varphi_1 - \varphi_2,\;
-  \delta\rho := \rho_1 - \rho_2
-\]
-
-Six steps:
-\begin{enumerate}
-  \item Substitute HJB and FP equations
-  \item Diffusion terms cancel
-  \item Integration by parts on the current
-  \item Integrate over $[0,T]$; boundary terms vanish
-  \item Decompose $A_0 + C_0$ (convexity) $+ \eps(A_R+C_R)$ (coupling)
-  \item Combine with monotonicity of $f_0$
-\end{enumerate}
-
-\medskip
-
-\textbf{Result:}
-$\lambda\norm{\delta\rho}^2_{L^2} \leq \eps L_R\,\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}$.
-
-\medskip
-
-Then Banach Fixed-Point Theorem gives the contraction.
-\end{frame}
-
-\begin{frame}{Sharpness: rate is tight}
-\begin{block}{Proposition (bilinear exactness)}
-For $R = \rho\cdot p$ at the uniform equilibrium, the linearised outer map has
-operator norm \emph{exactly}
-\[
-  \kappa = \frac{\eps L_R}{\lambda}.
-\]
-The Theorem is therefore sharp; no constant can be improved.
-\end{block}
-
-\bigskip
-
-\textbf{Proof sketch.}
-On the torus, linearise at $\rho^*=1$.
-Stationary FP forces $\Delta(\delta\varphi) = 0 \Rightarrow \nabla\delta\varphi = 0$.
-Linearised HJB then reduces to
-\[
-  -\lambda\,\delta\rho + \eps L_R\,\delta\bar\rho = 0,
-\]
-i.e.\ $\delta\rho = (\eps L_R/\lambda)\,\delta\bar\rho$.
-\end{frame}
-
-\begin{frame}{Necessity: explicit divergence}
-\begin{block}{Proposition (necessity)}
-When $\eps L_R \geq \lambda$, the linearised iteration does not contract:
-it stagnates at $\eps L_R = \lambda$ and grows geometrically when
-$\eps L_R > \lambda$.
-\end{block}
-
-\bigskip
-
-Same example: ergodic MFG on $\mathbb{T}^d$ with $f_0 = \lambda\rho$ and
-$R = L_R\rho$.
-
-\bigskip
-
-\textbf{Combined:} the GAN-tractable condition $\eps L_R < \lambda$ is
-\emph{necessary and sufficient} for linear convergence (linearised regime).
-
-\bigskip
-
-This sharpness is unusual:
-the contraction theorem is not just a bound, it is the actual rate.
-\end{frame}
+\note{
+\textbf{Speaker} (2 min):
+Here is the main result.
+Under the GAN-tractable condition epsilon times L-R strictly less than lambda,
+the Extended-MFGAN outer iteration is a contraction in L-squared with rate
+exactly kappa equals epsilon times L-R over lambda.
+In particular, rho-k converges to the equilibrium rho-star at the geometric
+rate kappa-to-the-k.
+This is the first explicit convergence rate for any deep-learning MFG solver
+in the non-separable setting. APAC-Net does not give a rate; MFDGM does not
+give a rate. We do.
+The convergence is in L-squared, which by a Brenier-Benamou bound under the
+density bounds gives Wasserstein-two convergence at the same rate. So we
+strictly improve on MFDGM, which only gets L-p for p less than two.
+The rate is also \emph{explicit}, meaning it is a closed-form function of the
+problem data. You can read off how many iterations you need.
+The next slide sketches how the proof works.
+}
 
 %% =================================================================
-\section{Numerical results}
+%%  10. PROOF SKETCH
+%% =================================================================
+\begin{frame}{Proof sketch: Lasry-Lions duality}
+\textbf{Compute} $\;\dfrac{d}{dt}\displaystyle\int_\Omega \delta\varphi\cdot\delta\rho\,dx$
+\;where $\delta\varphi = \varphi_1 - \varphi_2$, $\delta\rho = \rho_1 - \rho_2$.
 
-\begin{frame}{Experiment 1: Separable limit ($\eps = 0$)}
-\textbf{Predicted:} one outer iteration suffices when $\eps = 0$.
+\vspace{0.3cm}
+\begin{enumerate}
+\setlength\itemsep{0.15em}
+  \item Substitute HJB and FP for $\varphi_i, \rho_i$.
+  \item Diffusion terms $\nu\Delta$ \alert{cancel} between HJB and FP.
+  \item Integrate by parts on the current term.
+  \item Integrate over $[0,T]$; boundary terms \alert{vanish}
+        ($\delta\rho(0)=0$, $\delta\varphi(T)=0$).
+  \item Decompose: \;
+        $A_0+C_0$ (convex base) \,$+\,\eps(A_R+C_R)$ (coupling).
+  \item Combine with monotonicity of $f_0$.
+\end{enumerate}
 
-\medskip
+\vspace{0.3cm}
+\begin{tcolorbox}[colback=accent!10, colframe=accent, arc=3pt]
+\centering
+$\lambda\,\norm{\delta\rho}^2_{L^2}
+ \;\leq\;
+ \eps\, L_R\,\norm{\delta\bar\rho}_{L^2}\,\norm{\delta\rho}_{L^2}.$
+\end{tcolorbox}
 
+\vspace{0.2cm}
+$\Rightarrow$ Banach Fixed-Point Theorem: contraction at rate $\kappa = \eps L_R/\lambda$. \;$\square$
+\end{frame}
+
+\note{
+\textbf{Speaker} (3 min):
+The proof technique is Lasry-Lions duality. This is the same technique used to
+prove uniqueness in the classical separable MFG. We adapt it to the perturbed
+non-separable setting.
+The whole proof is six steps. Take two MFG solutions, with densities rho-one
+and rho-two, value functions phi-one and phi-two. Compute the time derivative
+of the inner product of delta-phi with delta-rho.
+Step 1: substitute the HJB and FP equations.
+Step 2: the diffusion terms nu times Laplacian cancel exactly between the
+two equations. This is the magical part.
+Step 3: integrate by parts on the current term.
+Step 4: integrate from time zero to T. Boundary terms vanish because of the
+boundary conditions: delta-rho is zero at time zero, delta-phi is zero at
+time T.
+Step 5: split the resulting Hamiltonian-difference into the contribution from
+H-zero (the convex base, gives a non-positive term by strong convexity) and
+the contribution from the residual R (gives a coupling term controlled by L-R).
+Step 6: combine with the Lasry-Lions monotonicity of f-zero.
+The final estimate is the boxed inequality: lambda times the L-squared norm
+squared of delta-rho is at most epsilon times L-R times the product of the
+input and output L-squared norms.
+Dividing by the L-squared norm of delta-rho gives the contraction.
+Then Banach fixed-point theorem gives geometric convergence.
+}
+
+%% =================================================================
+%%  11. SHARPNESS
+%% =================================================================
+\begin{frame}{Sharpness: rate is tight}
+\begin{block}{Proposition (bilinear exactness)}
+For $R(x,\rho,p) = \rho\cdot p$, the linearised outer fixed-point map at the
+uniform equilibrium has operator norm \emph{exactly}
+\[
+  \kappa = \dfrac{\eps L_R}{\lambda}.
+\]
+\end{block}
+
+\vspace{0.3cm}
+
+\textbf{Why?} \;On the torus at $\rho^* = 1$:
+\begin{align*}
+  \text{Stationary FP:} \quad & \Delta(\delta\varphi) = 0 \;\Rightarrow\; \nabla\delta\varphi = 0\\
+  \text{Linearised HJB:} \quad & -\lambda\,\delta\rho + \eps L_R\,\delta\bar\rho = 0\\[4pt]
+  \implies \quad & \boxed{\,\delta\rho \;=\; \dfrac{\eps L_R}{\lambda}\,\delta\bar\rho\,}
+\end{align*}
+
+\vspace{0.2cm}
+
+The Theorem cannot be improved: the upper bound is \emph{attained}.
+\end{frame}
+
+\note{
+\textbf{Speaker} (1.5 min):
+Now I want to convince you the rate kappa is the right rate, not just an upper
+bound. We prove this via a direct linearisation calculation on the bilinear
+case R equals rho times p.
+Take the ergodic MFG on the torus. The unique uniform equilibrium has rho-star
+identically one. Linearise the outer fixed-point map at this point.
+The stationary Fokker-Planck equation reduces to Laplacian of delta-phi equals
+zero. On the torus this forces the gradient of delta-phi to vanish.
+With that, the linearised HJB collapses to the scalar relation
+minus lambda times delta-rho plus epsilon times L-R times delta-rho-bar equals zero.
+Solving: delta-rho equals epsilon L-R over lambda times delta-rho-bar.
+That is the operator norm of the linearised map. Exactly kappa. So the upper
+bound in the theorem is attained. It is not just a bound; it is the rate.
+}
+
+%% =================================================================
+%%  12. NECESSITY
+%% =================================================================
+\begin{frame}{Necessity: the condition is required}
+\begin{block}{Proposition (necessity counterexample)}
+For the same ergodic MFG: when $\eps L_R \geq \lambda$, the linearised outer
+iteration \emph{fails} to contract. \\
+It \alert{stagnates} at $\eps L_R = \lambda$ and \alert{grows geometrically}
+when $\eps L_R > \lambda$.
+\end{block}
+
+\vspace{0.4cm}
+\begin{center}
+\begin{tikzpicture}[font=\small]
+  \draw[->, thick] (-0.3, 0) -- (8, 0) node[below right] {$\eps L_R / \lambda$};
+  \draw[->, thick] (0, -0.3) -- (0, 2.4) node[above left] {$\|\rho^k - \rho^*\|$};
+  \draw[kaustteal, very thick, smooth, samples=80, domain=0:0.95]
+        plot (\x*4, {1.8 * (1-\x)^4});
+  \draw[accent, very thick, smooth, samples=80, domain=1.05:1.4]
+        plot (\x*4, {0.4 + (\x - 1.0)*5});
+  \draw[dashed, gray, thick] (4, 0) -- (4, 2.4);
+  \node[below, kaustteal] at (1.5, -0.05) {\textbf{converging}};
+  \node[below, accent] at (5.6, -0.05) {\textbf{diverging}};
+  \node[above, gray] at (4, 2.5) {$\eps^* = \lambda/L_R$};
+\end{tikzpicture}
+\end{center}
+
+\vspace{0.2cm}
+\textbf{Combined:} the GAN-tractable condition is \alert{necessary and sufficient}
+for linear convergence (linearised regime).
+\end{frame}
+
+\note{
+\textbf{Speaker} (1.5 min):
+The previous slide showed the rate is tight. This slide goes one step further:
+the condition is \emph{necessary}. Without it, the iteration does not converge.
+Same ergodic MFG, same linearisation. When epsilon times L-R is greater than
+or equal to lambda, the operator norm is at least one. The error does not decay.
+At the threshold it stagnates. Above the threshold it grows geometrically and
+the iteration diverges from every starting point near the equilibrium.
+The cartoon at the bottom captures it: a sharp phase transition at epsilon-star
+equal to lambda over L-R. To the left, geometric decay. To the right, geometric
+growth.
+Combined with the previous slide: the GAN-tractable condition is both necessary
+and sufficient for linear convergence in the linearised regime. That is unusual
+for a contraction theorem. Most contraction theorems give a bound; ours gives
+the actual rate.
+}
+
+%% =================================================================
+%%  13. EXPERIMENT 1
+%% =================================================================
+\begin{frame}{Experiment 1: separable limit ($\eps = 0$)}
+\textbf{Predicted:} at $\eps = 0$, one outer iteration suffices.
+
+\vspace{0.3cm}
 \begin{center}
 \begin{tabular}{rrll}
 \toprule
 $\eps$ & $\kappa$ & $\norm{\rho^1-\rho^*}_{L^2}$ & $\norm{\rho^8-\rho^*}_{L^2}$ \\
 \midrule
-$0.0$ & $0.0$ & $\boldsymbol{0.0}$ & $0.0$ \\
+\rowcolor{accent!10} $\boldsymbol{0.0}$ & $\boldsymbol{0.0}$ &
+$\boldsymbol{0.0\!\times\!10^0}$ & $\boldsymbol{0.0\!\times\!10^0}$ \\
 $0.1$ & $0.1$ & $1.4\!\times\!10^{-2}$ & $1.4\!\times\!10^{-9}$ \\
 $0.3$ & $0.3$ & $4.2\!\times\!10^{-2}$ & $9.3\!\times\!10^{-6}$ \\
 $0.5$ & $0.5$ & $7.1\!\times\!10^{-2}$ & $5.5\!\times\!10^{-4}$ \\
@@ -316,119 +684,293 @@ $0.5$ & $0.5$ & $7.1\!\times\!10^{-2}$ & $5.5\!\times\!10^{-4}$ \\
 \end{tabular}
 \end{center}
 
-\medskip
-
-At $\eps = 0$, error collapses to machine zero in one step.
-For $\eps > 0$, geometric decay matches theory exactly.
+\vspace{0.4cm}
+\begin{itemize}
+  \item At $\eps=0$, error collapses to machine zero in \alert{one step}.
+  \item For $\eps>0$, geometric decay matches theory exactly.
+  \item Confirms Extended-MFGAN $=$ APAC-Net when $\eps=0$.
+\end{itemize}
 \end{frame}
 
-\begin{frame}{Experiment 2: Bilinear MFG-LWR  (two-sided phase transition)}
-For $R = \rho p$, the equilibrium momentum is $p^* = 1-\eps$, so
-$L_R(p^*) = |1-\eps|$ and
+\note{
+\textbf{Speaker} (1 min):
+Now to numerics. Three experiments, each a clean validation of the theory.
+First: the separable limit. The theory predicts that at epsilon equals zero,
+one outer iteration is enough.
+Look at the highlighted row. At epsilon equals zero, the error after one
+iteration is exactly zero. Down to machine precision. After eight iterations,
+still zero.
+For epsilon greater than zero, the error decays geometrically with rate equal
+to epsilon, exactly matching the theoretical kappa.
+This confirms what the algorithm description claimed: at epsilon equals zero,
+Extended-MFGAN reduces exactly to one APAC-Net call. This is a sanity check,
+but an important one.
+}
+
+%% =================================================================
+%%  14. EXPERIMENT 2: BILINEAR
+%% =================================================================
+\begin{frame}{Experiment 2: bilinear MFG-LWR}
+At the no-drift uniform equilibrium $p^* = 1 - \eps$, so $L_R = |1-\eps|$ and
 \[
-  \kappa = \frac{\eps\,|1-\eps|}{\lambda}.
+  \kappa = \dfrac{\eps\,|1-\eps|}{\lambda},
 \]
+which is non-monotonic and gives \alert{two phase transitions} when $\lambda < 1/4$.
 
-\medskip
-
+\vspace{0.2cm}
 \begin{center}
 \includegraphics[width=0.92\textwidth]{figures/exp2_traffic.pdf}
 \end{center}
 
-Two thresholds at $\eps^*_\pm = \tfrac{1}{2}(1\pm\sqrt{1-4\lambda}) \approx \{0.276, 0.724\}$.
-Empirical $\hat\kappa$ matches theoretical $\kappa$ to four digits.
+\vspace{0.1cm}
+\begin{center}
+\small
+$\lambda = 0.2$, transitions at $\eps^*_\pm \approx 0.276,\, 0.724$.\\
+\teal{Empirical $\hat\kappa$ matches theoretical $\kappa$ to four digits.}
+\end{center}
 \end{frame}
 
-\begin{frame}{Experiment 3: Single phase transition at $\eps^* = 1$}
-Density-only coupling, sweep $\eps \in [0.1, 1.5]$.
+\note{
+\textbf{Speaker} (2 min):
+Second: the bilinear MFG-LWR traffic flow. Now there is real structure to verify.
+For R equals rho times p, when you linearise at the uniform equilibrium, the
+optimal momentum p-star equals one minus epsilon. The Lipschitz constant L-R,
+which is the magnitude of p, equals the absolute value of one minus epsilon.
+So the contraction rate is epsilon times the absolute value of one minus epsilon
+divided by lambda. This is non-monotonic: it grows from zero, peaks at epsilon
+equals one half, and decays back to zero at epsilon equals one.
+For lambda equal to point two, the equation kappa equals one has two roots in
+the interval zero to one, at approximately point two-seven-six and point seven-two-four.
+You see this in the left panel: the empirical kappa as red dots sits exactly
+on the theoretical curve as black dashed line. Two phase transitions, as predicted.
+Right panel: convergence curves for each epsilon. Below the first threshold and
+above the second: geometric decay. Between them: geometric growth.
+Empirical and theoretical rates agree to four digits across all eleven values
+of epsilon.
+}
 
+%% =================================================================
+%%  15. EXPERIMENT 3: PHASE TRANSITION
+%% =================================================================
+\begin{frame}{Experiment 3: density-only phase transition}
+Sweep $\eps \in [0.1, 1.5]$ with $\lambda = L_R = 1$, predicted threshold $\eps^* = 1$.
+
+\vspace{0.2cm}
 \begin{center}
 \includegraphics[width=0.92\textwidth]{figures/exp3_phase_transition.pdf}
 \end{center}
 
-Empirical $\hat\kappa$ matches theoretical $\kappa = \eps$ to four digits;
-sharp transition between geometric decay ($\eps < 1$) and growth ($\eps > 1$).
-\end{frame}
-
-%% =================================================================
-\section{Wrap-up}
-
-\begin{frame}{Comparison vs prior work}
+\vspace{0.1cm}
 \begin{center}
 \small
+\begin{tabular}{rcccc}
+$\eps$:        & $0.1$ & $\cdots$ & $1.0$       & $1.5$ \\
+$\hat\kappa$:  & $0.100$ & $\cdots$ & $1.000$ & $1.500$ \\
+$\norm{\rho^{12}-\rho^*}$: &
+   $3.5\!\times\!10^{-14}$ & $\cdots$ &
+   $3.5\!\times\!10^{-2}$ & $4.6\!\times\!10^{0}$ \\
+\end{tabular}
+\\[3pt]
+\teal{Sharp transition at $\eps^*=1$ confirmed.  Empirical $=$ theoretical to four digits.}
+\end{center}
+\end{frame}
+
+\note{
+\textbf{Speaker} (2 min):
+Third experiment: a clean sweep of epsilon from point one to one point five
+with lambda and L-R both equal to one. The predicted threshold is epsilon-star
+equal to one.
+Left panel: the blue dots are the empirical contraction rate, the black dashed
+line is the theoretical kappa equal to epsilon. They lie on top of each other
+all the way from epsilon equals point one to one point five. Threshold marked
+in red at epsilon equals one.
+Right panel: convergence curves. For epsilon equals point one in the lightest
+colour, the error drops fourteen orders of magnitude in twelve iterations.
+For epsilon equals one point five in the brightest colour, the error grows
+about an order of magnitude over twelve iterations. The transition is sharp.
+The little table at the bottom captures it: at epsilon equals point one,
+final error is three point five times ten to the minus fourteen. At epsilon
+equals one, the iteration stagnates: error is constant at three point five
+times ten to the minus two. At epsilon equals one point five, the error has
+grown to four point six. Empirical kappa equals theoretical kappa to all four
+digits.
+}
+
+%% =================================================================
+%%  16. COMPARISON
+%% =================================================================
+\begin{frame}{Where Extended-MFGAN sits}
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
 \begin{tabular}{lcccc}
 \toprule
-Method & Non-sep.\ $H$ & $\rho$ representation & Convergence & Rate \\
+& \textbf{Non-sep.\ $H$} & \textbf{$\rho$ rep.} & \textbf{Convergence} & \textbf{Rate} \\
 \midrule
-APAC-Net / MFGAN      & No  & Distributional & $\W_1$        & Implicit \\
-MFDGM                 & Yes & Pointwise NN   & $L^p$, $p<2$  & None \\
-\textbf{Extended-MFGAN} & \textbf{Weak} & \textbf{Distributional} & $\boldsymbol{\W_2}$ & \textbf{Explicit} \\
+APAC-Net / MFGAN     & \cellcolor{accent!12}\xmark
+                     & Distributional & $\W_1$         & Implicit \\
+MFDGM                & \cellcolor{kaustteal!10}\cmark
+                     & \cellcolor{accent!12}Pointwise NN & \cellcolor{accent!12}$L^p$, $p<2$ &
+                     \cellcolor{accent!12}None \\
+\textbf{Extended-MFGAN} &
+  \cellcolor{kaustteal!10}\textbf{Weakly} &
+  \cellcolor{kaustteal!10}\textbf{Distributional} &
+  \cellcolor{kaustteal!10}\boldsymbol{$\W_2$} &
+  \cellcolor{kaustteal!10}\textbf{Explicit} \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\medskip
+\vspace{0.4cm}
+\textbf{We occupy the gap:} non-separable $H$ \emph{and} distributional $\rho$
+\emph{and} explicit Wasserstein rate.
 
-\textbf{Our paper occupies the gap:}
-non-separable $H$ + distributional $\rho$ + explicit Wasserstein rate.
+\vspace{0.3cm}
 
-\medskip
-
-\textbf{Trade-off:} restricted to weakly non-separable $H$ with
-$\eps L_R < \lambda$.
-Beyond this threshold, MFDGM is preferred.
+\begin{tcolorbox}[colback=kaustgold!10, colframe=kaustgold, arc=3pt]
+\textbf{Trade-off}: restricted to weakly non-separable $H$ with $\eps L_R < \lambda$.\\
+\hphantom{Trade-off:} Beyond this threshold, MFDGM is preferred.
+\end{tcolorbox}
 \end{frame}
 
-\begin{frame}{Conclusions}
+\note{
+\textbf{Speaker} (1.5 min):
+Putting Extended-MFGAN in context.
+Top row, APAC-Net and MFGAN: cannot handle non-separable Hamiltonians.
+Distributional representation, Wasserstein-one convergence, but the rate
+is implicit, not explicit. The red cell in the first column marks the
+showstopper.
+Middle row, MFDGM: handles any non-separable Hamiltonian, the green cell.
+But pointwise neural network representation, only L-p convergence for p
+less than two, and no rate. Three red cells.
+Bottom row, our method: weakly non-separable H, distributional rho via the
+generator, Wasserstein-two convergence, explicit rate. All four green cells.
+We occupy the gap that no prior method filled.
+The trade-off is honest: we are restricted to the GAN-tractable regime
+epsilon-L-R less than lambda. Beyond that threshold MFDGM remains the
+right tool.
+}
+
+%% =================================================================
+%%  17. CONTRIBUTIONS
+%% =================================================================
+\begin{frame}{Contributions in one slide}
 \begin{enumerate}
-  \item \textbf{Weakly non-separable Hamiltonians.}
+\setlength\itemsep{0.5em}
+  \item \textcolor{kaustblue}{\textbf{Weakly non-separable Hamiltonians.}}\\
         A formal interpolation between separable and non-separable MFGs.
-  \item \textbf{Extended-MFGAN algorithm.}
-        Decomposes a non-separable MFG into a sequence of separable ones,
+  \item \textcolor{kaustblue}{\textbf{Extended-MFGAN.}}\\
+        Decomposes a non-separable MFG into a sequence of separable subproblems,
         each solved by APAC-Net.
-  \item \textbf{Wasserstein-2 contraction theorem.}
-        Explicit rate $\kappa = \eps L_R/\lambda$, the first such for
-        non-separable MFGs.
-  \item \textbf{Sharpness.}
-        The rate is tight (Prop.\ 3.2) and the condition
-        $\eps L_R < \lambda$ is necessary (Prop.\ 3.3).
-  \item \textbf{Numerical validation.}
-        Empirical $\kappa$ matches theory to four digits across three benchmarks.
+  \item \textcolor{kaustteal}{\textbf{Wasserstein-2 contraction theorem.}}\\
+        Explicit rate $\kappa = \eps L_R/\lambda$.
+        First explicit rate for any deep MFG solver in the non-separable setting.
+  \item \textcolor{kaustteal}{\textbf{Sharpness.}}\\
+        Rate is tight in the bilinear case; condition is necessary.
+  \item \textcolor{kaustgold}{\textbf{Numerics.}}\\
+        Empirical $\kappa$ matches theory to \alert{four digits} across three benchmarks.
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{Future work}
+\note{
+\textbf{Speaker} (1 min):
+Five contributions, in one slide.
+First: a new class of Hamiltonians, weakly non-separable, that interpolates
+between the separable and non-separable cases.
+Second: a new algorithm, Extended-MFGAN, that decomposes a non-separable
+MFG into separable subproblems solvable by APAC-Net.
+Third: a Wasserstein-two contraction theorem with explicit rate kappa equals
+epsilon L-R over lambda. The first explicit rate for any deep MFG solver
+in this setting.
+Fourth: that rate is sharp, and the condition is necessary.
+Fifth: numerical experiments where the empirical contraction rate matches
+the theoretical rate to four decimal places. Across three different benchmarks.
+}
+
+%% =================================================================
+%%  18. FUTURE WORK
+%% =================================================================
+\begin{frame}{Future directions}
 \begin{itemize}
-  \item Full neural-network implementation of the inner GAN solver.
-  \item Head-to-head benchmark vs MFDGM at the implementation level.
-  \item High-dimensional scaling ($d \geq 100$).
-  \item Hybrid algorithm: GAN inner-solver $+$ MFDGM fallback when
+  \setlength\itemsep{0.4em}
+  \item \textbf{Full neural-network implementation} of the inner GAN solver
+        (current numerics use a clean spectral / FD scheme).
+  \item \textbf{Head-to-head benchmark} vs MFDGM at the implementation level.
+  \item \textbf{High-dimensional scaling} ($d \geq 100$).
+  \item \textbf{Hybrid algorithm}: GAN inner-solver $+$ MFDGM fallback when
         $\eps L_R \geq \lambda$.
-  \item Extension to mean field control problems.
-  \item Application to multi-agent reinforcement learning.
+  \item \textbf{Extension to mean field control problems}.
+  \item \textbf{Application to multi-agent reinforcement learning} and
+        engineering systems modelled by congestion-type MFGs.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Thank you}
+\note{
+\textbf{Speaker} (1 min):
+Future directions, briefly.
+First, the present numerics use a clean spectral scheme. A full neural-network
+implementation of the inner GAN is engineering work but a natural next step.
+Second, with that implementation, a head-to-head pipeline-level benchmark
+against MFDGM.
+Third, high-dimensional scaling experiments.
+Fourth, a hybrid algorithm: use the GAN inner solver when the GAN-tractable
+condition holds, fall back to MFDGM when it does not.
+Fifth, extending the framework to mean field control, where a social planner
+optimises over the whole population.
+And sixth, applying the algorithm to multi-agent reinforcement learning
+and engineering systems modelled by congestion-type MFGs.
+}
+
+%% =================================================================
+%%  19. THANK YOU
+%% =================================================================
+{
+\setbeamercolor{background canvas}{bg=kaustblue}
+\setbeamercolor{normal text}{fg=white}
+\begin{frame}[plain]
+\usebeamercolor[fg]{normal text}
 \centering
-\Large
-Generative Adversarial Networks for Mean Field Games\\
-with Weakly Non-Separable Hamiltonians
+\vspace{1cm}
+{\Huge \textbf{Thank you}}\\[0.6cm]
+{\Large Questions?}
 
-\bigskip
+\vspace{1.3cm}
 
-Hikmatullo Ismatov  \quad and \quad  Diogo Gomes \\
-King Abdullah University of Science and Technology
+\textit{Generative Adversarial Networks for Mean Field Games\\
+with Weakly Non-Separable Hamiltonians}
 
-\bigskip\bigskip
+\vspace{0.5cm}
+Hikmatullo Ismatov  \quad and \quad  Diogo Gomes\\
+\textsl{King Abdullah University of Science and Technology}
 
-\normalsize
-Code, paper, figures: \\
-\texttt{github.com/hikmatulloismatov1999/MFG-GAN-Paper}
+\vspace{1.0cm}
 
-\bigskip\bigskip
+Code, paper, slides:\\[3pt]
+{\small\ttfamily github.com/hikmatulloismatov1999/MFG-GAN-Paper}
 
-\textbf{Questions?}
+\vspace{0.4cm}
+{\small\ttfamily hikmatullo.ismatov@kaust.edu.sa}
+
+\vspace{0.6cm}
+\textcolor{kaustgold}{\rule{0.4\textwidth}{1pt}}
 \end{frame}
+}
+
+\note{
+\textbf{Speaker} (15 sec):
+Thank you. I am happy to take questions.
+The full paper, code, and these slides are on GitHub at the URL on the screen.
+You can reach me at the email below.
+}
+
+%% =================================================================
+%%  Bibliography (slide-only, hidden if not needed)
+%% =================================================================
+\begin{thebibliography}{99}
+\footnotesize
+\bibitem{lin2021apac} Lin et al., \emph{APAC-Net}, PNAS 2021.
+\bibitem{ruthotto2020machine} Ruthotto et al., PNAS 2020.
+\bibitem{assouline2023deep} Assouline \& Missaoui, arXiv 2023.
+\bibitem{huang2019mfg} Huang, IEEE TAC 2019.
+\end{thebibliography}
 
 \end{document}
