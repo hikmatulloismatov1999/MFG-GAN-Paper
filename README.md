@@ -35,6 +35,7 @@ numerically on three benchmarks to four-digit accuracy.
 ```
 MFG_GAN_Paper/
 ├── main.tex                   # Master LaTeX file
+├── main_neurips.tex           # NeurIPS-style conference version
 ├── sections/
 │   ├── abstract.tex
 │   ├── 01_introduction.tex
@@ -90,6 +91,34 @@ pdflatex main
 ```
 
 The repo is also configured for Overleaf via GitHub sync.
+
+## Building the NeurIPS version
+
+The NeurIPS conference draft is kept separate from the journal-style paper:
+
+```bash
+make neurips
+```
+
+or manually:
+
+```bash
+pdflatex main_neurips
+bibtex main_neurips
+pdflatex main_neurips
+pdflatex main_neurips
+```
+
+Before compiling, place the official `neurips_2026.sty` file from the
+NeurIPS author kit in the repository root, next to `main_neurips.tex`.
+For Overleaf with GitHub sync, set **Main document** to:
+
+```text
+main_neurips.tex
+```
+
+Use `main.tex` for the longer journal/preprint manuscript and
+`main_neurips.tex` for the anonymous NeurIPS submission.
 
 ## Key results
 

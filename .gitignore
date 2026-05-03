@@ -10,5 +10,5 @@ __pycache__/
 *.blg
 *.toc
 *.synctex.gz
-*.fdb_latexmkrc
+*.fdb_latexmk
 *.fls
