@@ -109,9 +109,8 @@ pdflatex main_neurips
 pdflatex main_neurips
 ```
 
-Before compiling, place the official `neurips_2026.sty` file from the
-NeurIPS author kit in the repository root, next to `main_neurips.tex`.
-For Overleaf with GitHub sync, set **Main document** to:
+The official `neurips_2026.sty` and `checklist.tex` files are included in
+the repository root. For Overleaf with GitHub sync, set **Main document** to:
 
 ```text
 main_neurips.tex

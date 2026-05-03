@@ -1,22 +1,19 @@
 \documentclass{article}
 
-% NeurIPS submission style. If the official neurips_2026.sty file is present,
-% this source uses it automatically. Otherwise it falls back to a simple
-% article layout so the draft still compiles on Overleaf while you prepare the
-% official author-kit files.
-\IfFileExists{neurips_2026.sty}{
-  \usepackage{neurips_2026}
-}{
-  \usepackage[margin=1in]{geometry}
-  \usepackage[numbers]{natbib}
-}
+% Official NeurIPS 2026 main-track submission style.
+% Do not pass final or preprint options for anonymous submission.
+\usepackage{neurips_2026}
 
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
 \usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{microtype}
+\usepackage{url}
+\usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{cleveref}
 
@@ -305,10 +302,7 @@ This follows by iterating
 \(\norm{\rho_N^{k+1}-\rho^\star}_{L^2}\leq
 \delta_N+\kappa\norm{\rho_N^k-\rho^\star}_{L^2}\).
 
-\section{NeurIPS Checklist Placeholder}
-
-The official NeurIPS checklist should be inserted here using the current
-year's author kit.  Before submission, answer every item and ensure the PDF
-contains the checklist after the appendix.
+\newpage
+\input{checklist.tex}
 
 \end{document}

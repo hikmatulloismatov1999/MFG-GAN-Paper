@@ -11,7 +11,7 @@ $(MAIN).pdf: $(MAIN).tex sections/*.tex appendix/*.tex references.bib
 
 neurips: $(NEURIPS).pdf
 
-$(NEURIPS).pdf: $(NEURIPS).tex references.bib figures/*.pdf
+$(NEURIPS).pdf: $(NEURIPS).tex neurips_2026.sty checklist.tex references.bib figures/*.pdf
 	pdflatex $(NEURIPS)
 	bibtex $(NEURIPS)
 	pdflatex $(NEURIPS)
