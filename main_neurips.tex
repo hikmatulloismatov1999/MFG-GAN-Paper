@@ -310,14 +310,27 @@ For \(\lambda=0.2\) and \(0\leq\eps\leq1\), the equation
 \(0.724\), giving a two-sided phase transition in the normalized traffic
 range.
 
-\section{Linearized Sharpness Experiments}
+\section{Experiments}
 
-The experiments validate the sharpness predictions of the exact linearized
-outer map.  They do not train a full neural GAN pipeline; rather, they isolate
-the part of the theory responsible for the threshold and contraction rate.  The
-quantities measured here are exactly the local rates controlled by
-\Cref{thm:l2_contraction_neurips}, so the experiments test the theorem's rate
-and failure threshold without adding neural-optimization noise.
+The experiments test the outer-loop mechanism rather than stochastic neural
+optimization.  This choice isolates the part of the framework controlled by
+\Cref{thm:l2_contraction_neurips}: the rate of the frozen-density fixed-point
+map and the weak-coupling threshold.  We report three deterministic
+linearized-map tests.  First, the separable limit checks that the wrapper
+reduces to a single call to the existing separable solver when \(\eps=0\).
+Second, a density-only residual tests the sharp threshold
+\(\eps L_R/\lambda=1\).  Third, a bilinear traffic-flow family tests a
+density--momentum coupling with the non-monotone two-threshold behavior
+predicted by \(\eps |1-\eps|/\lambda\).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.62\textwidth]{figures/exp1_analytic.pdf}
+\caption{Separable-limit ablation.  At \(\eps=0\), the outer wrapper collapses
+to one separable inner solve; for \(\eps>0\), the decay follows the predicted
+geometric rate.}
+\label{fig:separable_limit_neurips}
+\end{figure}
 
 \begin{table}[t]
 \centering
@@ -344,7 +357,16 @@ and failure threshold without adding neural-optimization noise.
 \caption{Linearized sharpness experiments.  Left: the traffic family exhibits
 the predicted two-threshold behavior.  Right: the density-only family transitions
 at \(\eps L_R/\lambda=1\).}
+\label{fig:linearized_sharpness_neurips}
 \end{figure}
+
+These results are deliberately limited but diagnostic.  In all displayed cases,
+the empirical contraction factor matches the theoretical factor to the reported
+precision, including convergence below threshold, stagnation at threshold, and
+growth above threshold.  The traffic experiment gives a motivating
+non-separable example: for \(\lambda=0.2\), the predicted transition points are
+\(\eps\approx0.276\) and \(\eps\approx0.724\), and the observed rates follow the
+curve \(\eps |1-\eps|/\lambda\).
 
 \section{Discussion and Limitations}
 

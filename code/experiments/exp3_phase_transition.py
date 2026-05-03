@@ -91,7 +91,9 @@ def run():
             eps, LR=LR, lam=lam, nu=nu, K=K, Nx=Nx
         )
         kappa_th = eps * LR / lam
-        status = "converging" if kappa_th < 1 else "diverging"
+        if   kappa_th < 1 - 1e-9: status = "converging"
+        elif kappa_th > 1 + 1e-9: status = "diverging"
+        else:                     status = "threshold"
         kappa_th_arr.append(kappa_th)
         kappa_emp_arr.append(kappa_emp)
         err_curves[eps] = errors
