@@ -93,6 +93,13 @@ by any GAN-based MFG method.  The resulting contribution is a reduction theorem
 that identifies when separable adversarial MFG solvers can be used inside a
 provably contractive outer loop.
 
+\paragraph{GAN compatibility.}
+By GAN-compatible, we mean that after freezing the residual density, each outer
+step becomes a separable MFG subproblem admitting the variational/adversarial
+formulation used by existing GAN-based MFG solvers.  The outer theorem is
+agnostic to the specific inner implementation; in the experiments below we
+isolate this outer map rather than train a stochastic adversarial model.
+
 Several alternatives address parts of this gap.  Physics-informed MFG solvers
 such as MFDGM handle non-separable Hamiltonians by minimizing PDE residuals
 directly, but their guarantees are not distributional contraction rates
@@ -123,7 +130,7 @@ Method family & Non-separable \(H\) & Distributional density & Explicit rate \\
 GAN-based MFG solvers & No & Yes & No / implicit \\
 MFDGM / PINN residual solvers & Yes & No & No \\
 Finite-difference / policy iteration & Yes & No & Problem dependent \\
-This work & Weakly & Yes, via inner solver & Yes, outer map \\
+This work & Weakly & Compatible with inner solvers & Exact outer map \\
 \bottomrule
 \end{tabular}
 \caption{Positioning.  The proposed contribution is an outer contraction
@@ -233,6 +240,18 @@ where the factor \(3\) is a conservative constant from the stability estimate.
 \end{enumerate}
 \end{assumption}
 
+\paragraph{Examples covered by the assumptions.}
+The assumptions hold for regularized MFGs on the torus with quadratic
+\(H_0(p)=|p|^2/2\), linear monotone coupling \(f_0(\rho)=\lambda\rho\), and
+bounded smooth residuals such as \(R(\rho,p)=a(\rho)b(p)\) on invariant sets
+where \(0<\rho_{\min}\leq\rho\leq\rho_{\max}\) and \(|p|\leq u_{\max}\).  The
+density-only residual \(R(\rho,p)=L_R\rho\) has \(L_{R,p}=0\), so the
+momentum-domination condition is automatic and the threshold reduces to
+\(\eps L_R<\lambda\).  The bilinear traffic residual \(R(\rho,p)=\rho p\)
+satisfies the assumptions on bounded density--momentum sets when
+\(3\eps\rho_{\max}<c_0\rho_{\min}\); our traffic experiment studies the
+corresponding linearized rate around the uniform no-drift equilibrium.
+
 \begin{theorem}[Outer contraction]
 \label{thm:l2_contraction_neurips}
 Under \Cref{ass:neurips}, if \(\kappa=\eps L_R/\lambda<1\), then the exact
@@ -300,8 +319,16 @@ Thus the local operator norm is exactly \(\eps L_R/\lambda\), so the threshold
 cannot be improved for this family.
 
 For the traffic family in \Cref{eq:traffic_family}, the no-drift equilibrium
-satisfies \(p^\star=1-\eps\).  The linearized residual has effective Lipschitz
-constant \(L_R(p^\star)=|1-\eps|\), giving the predicted local rate
+satisfies \(p^\star=1-\eps\).  The full model used in the experiment is the
+regularized torus MFG
+\[
+  H(\rho,p)=\frac12p^2-p-\lambda\rho+\eps\rho p,
+  \qquad \rho^\star\equiv1,\quad p^\star=1-\eps .
+\]
+Here \(f_0(\rho)=\lambda\rho\) supplies the Lasry--Lions monotonicity constant.
+Linearizing the frozen-density map at \((\rho^\star,p^\star)\) gives an
+effective residual Lipschitz constant \(L_R(p^\star)=|1-\eps|\), and hence the
+predicted local rate
 \[
   \kappa_{\mathrm{traffic}}=\frac{\eps |1-\eps|}{\lambda}.
 \]
@@ -352,12 +379,19 @@ geometric rate.}
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=.48\textwidth]{figures/exp2_traffic.pdf}
-\includegraphics[width=.48\textwidth]{figures/exp3_phase_transition.pdf}
-\caption{Linearized sharpness experiments.  Left: the traffic family exhibits
-the predicted two-threshold behavior.  Right: the density-only family transitions
-at \(\eps L_R/\lambda=1\).}
-\label{fig:linearized_sharpness_neurips}
+\includegraphics[width=.82\textwidth]{figures/exp2_traffic.pdf}
+\caption{Traffic-flow sharpness experiment.  The bilinear density--momentum
+coupling exhibits the predicted two-threshold behavior in
+\(\eps |1-\eps|/\lambda\).}
+\label{fig:traffic_sharpness_neurips}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=.82\textwidth]{figures/exp3_phase_transition.pdf}
+\caption{Density-only sharpness experiment.  The empirical contraction factor
+matches the theory curve and transitions at \(\eps L_R/\lambda=1\).}
+\label{fig:density_sharpness_neurips}
 \end{figure}
 
 These results are deliberately limited but diagnostic.  In all displayed cases,
@@ -387,20 +421,19 @@ theorem, and the restriction to weak residual coupling.
 
 \section{Stability Proof for \Cref{thm:l2_contraction_neurips}}
 
-We give the standard Lasry--Lions calculation underlying the proof sketch.
+\begin{lemma}[Lasry--Lions stability identity]
+\label{lem:ll_identity}
 Let \((\varphi_i,\rho_i)\) solve the two frozen subproblems corresponding to
-\(\bar\rho_i\), and write
+\(\bar\rho_i\), with the same initial density and terminal cost.  Write
 \[
 \delta\varphi=\varphi_1-\varphi_2,\quad
 \delta\rho=\rho_1-\rho_2,\quad
 \delta p=\nabla\varphi_1-\nabla\varphi_2.
 \]
-The two subproblems have the same initial density and terminal cost.  Computing
-\(\frac{d}{dt}\int_\Omega \delta\varphi\,\delta\rho\,dx\), using the HJB and
-FP equations, and integrating by parts gives
+Then
 \[
-\frac{d}{dt}\int_\Omega \delta\varphi\,\delta\rho\,dx
-= A(t)-\int_\Omega (f_0(x,\rho_1)-f_0(x,\rho_2))\delta\rho\,dx,
+\lambda\norm{\delta\rho}_{L^2((0,T)\times\Omega)}^2
+\leq \int_0^T A(t)\,dt ,
 \]
 where
 \[
@@ -408,41 +441,86 @@ A(t)=\int_\Omega [H^1(x,p_1)-H^2(x,p_2)]\delta\rho\,dx
 -\int_\Omega \delta p\cdot[
 \rho_1\nabla_pH^1(x,p_1)-\rho_2\nabla_pH^2(x,p_2)]\,dx .
 \]
+\end{lemma}
+
+\begin{proof}
+Computing \(\frac{d}{dt}\int_\Omega \delta\varphi\,\delta\rho\,dx\), using the
+HJB and FP equations, and integrating by parts gives
+\[
+\frac{d}{dt}\int_\Omega \delta\varphi\,\delta\rho\,dx
+= A(t)-\int_\Omega (f_0(x,\rho_1)-f_0(x,\rho_2))\delta\rho\,dx,
+\]
 The boundary term vanishes after integration over \([0,T]\), because
 \(\delta\rho(0,\cdot)=0\) and \(\delta\varphi(T,\cdot)=0\).  Strong
 monotonicity of \(f_0\) therefore yields
+the claim.
+\end{proof}
+
+\begin{lemma}[Frozen-Hamiltonian estimate]
+\label{lem:frozen_estimate}
+Under \Cref{ass:neurips}, the quantity \(A(t)\) in
+\Cref{lem:ll_identity} satisfies
 \[
-\lambda\norm{\delta\rho}_{L^2((0,T)\times\Omega)}^2
-\leq \int_0^T A(t)\,dt .
+  A(t)\leq
+  \eps L_R\norm{\delta\bar\rho(t)}_{L^2(\Omega)}
+       \norm{\delta\rho(t)}_{L^2(\Omega)} .
 \]
-Now write \(H^i=H_0+\eps R^i\), where
-\(R^i(x,p)=R(x,\bar\rho_i(x,t),p)\).  The \(H_0\) contribution is non-positive:
-by strong convexity and \(\rho_i\geq\rho_{\min}>0\),
+\end{lemma}
+
+\begin{proof}
+Write \(H^i=H_0+\eps R^i\), where
+\(R^i(x,p)=R(x,\bar\rho_i(x,t),p)\).  Split \(A=A_0+\eps A_R\).  For the
+base Hamiltonian,
 \[
-A_0(t)\leq -c_0\rho_{\min}\int_\Omega |\delta p|^2\,dx .
+A_0(t)=\int_\Omega [H_0(p_1)-H_0(p_2)]\delta\rho\,dx
+-\int_\Omega \delta p\cdot[
+\rho_1\nabla_pH_0(p_1)-\rho_2\nabla_pH_0(p_2)]\,dx .
 \]
-The residual contribution splits into a density-variation term and a
-momentum-variation term.  On the bounded momentum set \(|p|\leq u_{\max}\),
-the Lipschitz assumption in \(\rho\) gives
+Using \(\delta\rho=\rho_1-\rho_2\), this can be rearranged as
+\[
+A_0(t)=
+-\int_\Omega \rho_1\bigl[
+H_0(p_2)-H_0(p_1)-\nabla_pH_0(p_1)\cdot(p_2-p_1)
+\bigr]dx
+-\int_\Omega \rho_2\bigl[
+H_0(p_1)-H_0(p_2)-\nabla_pH_0(p_2)\cdot(p_1-p_2)
+\bigr]dx .
+\]
+Strong convexity and \(\rho_i\geq\rho_{\min}\) give
+\[
+  A_0(t)\leq -c_0\rho_{\min}\int_\Omega |\delta p|^2\,dx .
+\]
+For the residual part, add and subtract \(R(x,\bar\rho_1,p_2)\) and
+\(\nabla_pR(x,\bar\rho_1,p_2)\).  The terms involving
+\(\bar\rho_1-\bar\rho_2\) are bounded by the Lipschitz assumption in density:
 \[
 |A_{R,\rho}(t)|
 \leq L_R\norm{\delta\bar\rho(t)}_{L^2(\Omega)}
        \norm{\delta\rho(t)}_{L^2(\Omega)} .
 \]
-The remaining terms are bounded by
+The remaining residual terms depend only on the momentum difference.  Taylor's
+formula and \(|\nabla_pR|+|\nabla_{pp}^2R|\leq L_{R,p}\), together with
+\(\rho_i\leq\rho_{\max}\), yield the conservative bound
 \[
 |A_{R,p}(t)|\leq 3L_{R,p}\rho_{\max}
-\int_\Omega |\delta p|^2\,dx ,
+\int_\Omega |\delta p|^2\,dx .
 \]
-using the smoothness of \(R\) on the bounded momentum set.  The condition
-\(3\eps L_{R,p}\rho_{\max}<c_0\rho_{\min}\) absorbs this term into the
-negative \(A_0\) contribution.  Thus
+The domination condition \(3\eps L_{R,p}\rho_{\max}<c_0\rho_{\min}\) absorbs
+\(\eps A_{R,p}\) into the negative base contribution, leaving only the
+density-variation term.
+\end{proof}
+
+\begin{proof}[Proof of \Cref{thm:l2_contraction_neurips}]
+\Cref{lem:ll_identity,lem:frozen_estimate} give
 \[
 \lambda\norm{\delta\rho}_{L^2}^2
 \leq \eps L_R\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}.
 \]
 If \(\delta\rho\neq0\), division by \(\norm{\delta\rho}_{L^2}\) gives the
-contraction estimate.  The case \(\delta\rho=0\) is trivial.
+contraction estimate.  The case \(\delta\rho=0\) is trivial.  Banach's
+fixed-point theorem gives existence and uniqueness of the outer fixed point and
+the geometric convergence bound.
+\end{proof}
 
 \section{Perturbed Inner Solves}
 
