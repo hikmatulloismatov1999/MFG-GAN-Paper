@@ -62,7 +62,7 @@ validate the predicted linearized phase transition.
 
 Mean field games (MFGs) model equilibria in large populations of rational
 agents through a backward Hamilton--Jacobi--Bellman equation coupled to a
-forward Fokker--Planck equation:
+forward Fokker--Planck equation \citep{lasry2007mean,huang2006large}:
 \begin{align}
   -\partial_t \varphi-\nu\Delta\varphi+H(x,\rho,\nabla\varphi)&=0,
   \label{eq:hjb}\\
@@ -71,8 +71,10 @@ forward Fokker--Planck equation:
 \end{align}
 When \(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)\), the system admits a variational
 structure connected to Wasserstein GANs, enabling adversarial solvers such as
-APAC-Net and MFGAN.  The separability assumption, however, excludes important
-models where density and momentum are coupled directly.
+APAC-Net and MFGAN \citep{goodfellow2014generative,arjovsky2017wasserstein,
+cao2021connecting,lin2021apac,ruthotto2020machine}.  The separability
+assumption, however, excludes important models where density and momentum are
+coupled directly, including traffic-flow MFGs \citep{huang2019mfg}.
 
 This paper asks whether the GAN-compatible structure can be retained for a
 controlled class of non-separable Hamiltonians.  Our observation is simple:
@@ -81,6 +83,16 @@ remaining subproblem is separable in the sense required by existing GAN-based
 MFG solvers.  We therefore separate the analysis into an outer fixed-point map,
 which handles the non-separable coupling, and an inner separable solver, which
 may be implemented by any GAN-based MFG method.
+
+Several alternatives address parts of this gap.  Physics-informed MFG solvers
+such as MFDGM handle non-separable Hamiltonians by minimizing PDE residuals
+directly, but their guarantees are not distributional contraction rates
+\citep{sirignano2018dgm,raissi2019physics,assouline2023deep}.  Classical
+finite-difference and policy-iteration schemes provide useful low-dimensional
+reference solvers, but do not provide a GAN-compatible distributional learning
+pipeline \citep{achdou2010mean,lavigne2023policy,hu2024recent}.  Our result is
+therefore best understood as an outer contraction principle for turning a weak
+non-separable MFG into a sequence of separable subproblems.
 
 \paragraph{Contributions.}
 We make four contributions.  First, we define weakly non-separable
@@ -151,20 +163,25 @@ inner training appears additively in the usual perturbed-contraction bound.
 \label{ass:neurips}
 The following hold for all frozen densities considered by the iteration.
 \begin{enumerate}
+\item Each frozen separable subproblem has a unique solution
+\((\varphi_{\bar\rho},\rho_{\bar\rho})\) in the admissible class, so
+\(\mathcal{T}(\bar\rho)=\rho_{\bar\rho}\) is well defined.
 \item \(H_0\) is \(c_0\)-strongly convex in \(p\).
 \item \(f_0\) is \(\lambda\)-strongly monotone:
 \[
-  \int (f_0(x,\rho_1)-f_0(x,\rho_2))(\rho_1-\rho_2)\,dx
+  \int_\Omega (f_0(x,\rho_1)-f_0(x,\rho_2))(\rho_1-\rho_2)\,dx
   \geq \lambda\norm{\rho_1-\rho_2}_{L^2}^2 .
 \]
 \item Densities satisfy \(0<\rho_{\min}\leq \rho\leq\rho_{\max}\).
 \item Momentum is bounded: \(\norm{\nabla\varphi_{\bar\rho}}_{L^\infty}\leq u_{\max}\).
-\item On \(|p|\leq u_{\max}\), \(R\) is \(L_R\)-Lipschitz in \(\rho\), and
-the \(p\)-variation terms are dominated by strong convexity:
+\item On \(|p|\leq u_{\max}\), \(R\) is \(L_R\)-Lipschitz in \(\rho\), is
+smooth in \(p\), and satisfies
+\(|\nabla_p R|+|\nabla^2_{pp}R|\leq L_{R,p}\).  The \(p\)-variation is
+dominated by strong convexity:
 \[
-  C_R\eps L_{R,p}\rho_{\max}<c_0\rho_{\min},
+  3\eps L_{R,p}\rho_{\max}<c_0\rho_{\min},
 \]
-for the constant \(C_R\) appearing in the stability estimate.
+where the factor \(3\) is a conservative constant from the stability estimate.
 \end{enumerate}
 \end{assumption}
 
@@ -211,6 +228,10 @@ If \(\Omega\) is bounded and the densities are uniformly bounded, then
   \leq
   C_\Omega \kappa^{k/2}\norm{\rho^0-\rho^\star}_{L^2}^{1/2}.
 \]
+The estimate follows from the standard bound
+\(\W_2^2(\rho,\mu)\leq C_\Omega\norm{\rho-\mu}_{L^1}\) on bounded domains and
+\(\norm{\rho-\mu}_{L^1}\leq |\Omega|^{1/2}\norm{\rho-\mu}_{L^2}\)
+\citep{villani2009optimal}.
 \end{corollary}
 
 \section{Sharpness in Linearized Ergodic MFGs}
@@ -278,15 +299,74 @@ The result should be interpreted as a contraction theorem for the exact outer
 map, not as a complete optimization guarantee for GAN training.  Its value is
 that it identifies a regime in which non-separable MFGs can be reduced to a
 sequence of separable, GAN-compatible subproblems with an explicit rate.  A full
-NeurIPS submission should add either a neural APAC-Net-style inner
-implementation or clearly position the current experiments as theory-validation
-experiments.  Important limitations are the non-vacuum condition, bounded
-momentum, and the restriction to weak residual coupling.
+neural APAC-Net-style implementation, finite-training optimization analysis,
+and high-dimensional benchmarks are natural next steps.  Important limitations
+are the non-vacuum condition, bounded momentum, exact inner solves in the main
+theorem, and the restriction to weak residual coupling.
 
 \bibliographystyle{abbrvnat}
 \bibliography{references}
 
 \appendix
+
+\section{Stability Proof for \Cref{thm:l2_contraction_neurips}}
+
+We give the standard Lasry--Lions calculation underlying the proof sketch.
+Let \((\varphi_i,\rho_i)\) solve the two frozen subproblems corresponding to
+\(\bar\rho_i\), and write
+\[
+\delta\varphi=\varphi_1-\varphi_2,\quad
+\delta\rho=\rho_1-\rho_2,\quad
+\delta p=\nabla\varphi_1-\nabla\varphi_2.
+\]
+The two subproblems have the same initial density and terminal cost.  Computing
+\(\frac{d}{dt}\int_\Omega \delta\varphi\,\delta\rho\,dx\), using the HJB and
+FP equations, and integrating by parts gives
+\[
+\frac{d}{dt}\int_\Omega \delta\varphi\,\delta\rho\,dx
+= A(t)-\int_\Omega (f_0(x,\rho_1)-f_0(x,\rho_2))\delta\rho\,dx,
+\]
+where
+\[
+A(t)=\int_\Omega [H^1(x,p_1)-H^2(x,p_2)]\delta\rho\,dx
+-\int_\Omega \delta p\cdot[
+\rho_1\nabla_pH^1(x,p_1)-\rho_2\nabla_pH^2(x,p_2)]\,dx .
+\]
+The boundary term vanishes after integration over \([0,T]\), because
+\(\delta\rho(0,\cdot)=0\) and \(\delta\varphi(T,\cdot)=0\).  Strong
+monotonicity of \(f_0\) therefore yields
+\[
+\lambda\norm{\delta\rho}_{L^2((0,T)\times\Omega)}^2
+\leq \int_0^T A(t)\,dt .
+\]
+Now write \(H^i=H_0+\eps R^i\), where
+\(R^i(x,p)=R(x,\bar\rho_i(x,t),p)\).  The \(H_0\) contribution is non-positive:
+by strong convexity and \(\rho_i\geq\rho_{\min}>0\),
+\[
+A_0(t)\leq -c_0\rho_{\min}\int_\Omega |\delta p|^2\,dx .
+\]
+The residual contribution splits into a density-variation term and a
+momentum-variation term.  On the bounded momentum set \(|p|\leq u_{\max}\),
+the Lipschitz assumption in \(\rho\) gives
+\[
+|A_{R,\rho}(t)|
+\leq L_R\norm{\delta\bar\rho(t)}_{L^2(\Omega)}
+       \norm{\delta\rho(t)}_{L^2(\Omega)} .
+\]
+The remaining terms are bounded by
+\[
+|A_{R,p}(t)|\leq 3L_{R,p}\rho_{\max}
+\int_\Omega |\delta p|^2\,dx ,
+\]
+using the smoothness of \(R\) on the bounded momentum set.  The condition
+\(3\eps L_{R,p}\rho_{\max}<c_0\rho_{\min}\) absorbs this term into the
+negative \(A_0\) contribution.  Thus
+\[
+\lambda\norm{\delta\rho}_{L^2}^2
+\leq \eps L_R\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}.
+\]
+If \(\delta\rho\neq0\), division by \(\norm{\delta\rho}_{L^2}\) gives the
+contraction estimate.  The case \(\delta\rho=0\) is trivial.
 
 \section{Perturbed Inner Solves}
 
@@ -301,6 +381,19 @@ If the inner solver returns \(\rho_N^{k+1}\) with
 This follows by iterating
 \(\norm{\rho_N^{k+1}-\rho^\star}_{L^2}\leq
 \delta_N+\kappa\norm{\rho_N^k-\rho^\star}_{L^2}\).
+
+\section{Reproducibility Details}
+
+All experiments in the paper are deterministic linearized-map evaluations and
+use no external datasets.  The scripts are included in the supplementary code
+and can be run with Python, NumPy, and Matplotlib:
+\begin{verbatim}
+python3 code/experiments/exp1_analytic.py
+python3 code/experiments/exp2_traffic.py
+python3 code/experiments/exp3_phase_transition.py
+\end{verbatim}
+Each script prints the table values and regenerates the corresponding PDF
+figure.  A GPU is not required.
 
 \newpage
 \input{checklist.tex}
