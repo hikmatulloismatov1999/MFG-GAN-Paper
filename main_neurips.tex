@@ -32,8 +32,8 @@
 \newcommand{\Div}{\operatorname{div}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 
-\title{A Fixed-Point Reduction for Weakly Non-Separable Mean Field Games\\
-with GAN-Compatible Inner Solvers}
+\title{A Fixed-Point Framework for GAN-Based Mean Field Games\\
+with Weakly Non-Separable Hamiltonians}
 
 \author{Anonymous Authors}
 
@@ -42,36 +42,43 @@ with GAN-Compatible Inner Solvers}
 \maketitle
 
 \begin{abstract}
-GAN-based solvers for mean field games (MFGs) represent population densities
-distributionally, but their existing formulations rely on separable
-Hamiltonians.  Many models, including traffic-flow MFGs, couple density and
-momentum directly.  We give a fixed-point reduction for the weakly
-non-separable class
-\(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p)\): freeze the density in
-the residual term, solve the resulting separable MFG, and iterate.  Each inner
-problem has the structure required by existing GAN-based MFG solvers.  Under
-Lasry--Lions monotonicity, strong convexity of the base Hamiltonian, bounded
-density, and bounded momentum, the exact outer map is an \(L^2\) contraction
-with rate \(\kappa=\eps L_R/\lambda\), yielding an induced \(\W_2\) convergence
-bound.  We prove that this threshold is sharp for a linearized ergodic family
-on the torus and verify the predicted phase transition in deterministic
-linearized experiments.
+GAN-based solvers for mean field games (MFGs) provide a distributional approach
+to learning population equilibria, but existing formulations largely rely on
+separable Hamiltonians.  This restriction excludes models in which the density
+interacts directly with momentum or control, including traffic-flow and
+congestion-type MFGs.  We propose a fixed-point framework that extends
+GAN-based MFG solvers to weakly non-separable Hamiltonians of the form
+\(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p)\).  The method freezes the
+density inside the non-separable residual, so that each outer iteration reduces
+to a separable MFG subproblem that can be solved using existing GAN-based inner
+solvers.  Under Lasry--Lions monotonicity, strong convexity of the base
+Hamiltonian, and boundedness assumptions on density and momentum, we prove
+that the exact outer map is an \(L^2\) contraction with rate proportional to
+\(\eps\).  This yields convergence of the proposed outer scheme and identifies
+an explicit weak-coupling threshold.  We further show that the threshold is
+sharp for a linearized ergodic model on the torus.  Numerical experiments
+validate the predicted phase transition and support the proposed extension
+beyond the separable setting.
 \end{abstract}
 
 \section{Introduction}
 
-Mean field games (MFGs) model equilibria in large populations of rational
-agents through a backward Hamilton--Jacobi--Bellman equation coupled to a
-forward Fokker--Planck equation \citep{lasry2007mean,huang2006large}:
+Learning equilibria in large interacting populations is a central challenge in
+multi-agent machine learning.  Mean field games (MFGs) provide a continuum
+limit in which population behavior is described by a backward
+Hamilton--Jacobi--Bellman equation coupled to a forward Fokker--Planck equation
+\citep{lasry2007mean,huang2006large}:
 \begin{align}
   -\partial_t \varphi-\nu\Delta\varphi+H(x,\rho,\nabla\varphi)&=0,
   \label{eq:hjb}\\
   \partial_t\rho-\nu\Delta\rho-\Div\!\bigl(\rho\nabla_pH(x,\rho,\nabla\varphi)\bigr)&=0.
   \label{eq:fp}
 \end{align}
-When \(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)\), the system admits a variational
-structure connected to Wasserstein GANs, enabling adversarial solvers such as
-APAC-Net and MFGAN \citep{goodfellow2014generative,arjovsky2017wasserstein,
+Recent GAN-based MFG solvers exploit this structure to learn population
+densities distributionally rather than on a fixed grid.  When
+\(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)\), the system admits a variational structure
+connected to Wasserstein GANs, enabling adversarial solvers such as APAC-Net and
+MFGAN \citep{goodfellow2014generative,arjovsky2017wasserstein,
 cao2021connecting,lin2021apac,ruthotto2020machine}.  The separability
 assumption, however, excludes important models where density and momentum are
 coupled directly, including traffic-flow MFGs \citep{huang2019mfg}.
@@ -97,13 +104,15 @@ contribution is an outer contraction principle for turning a weak
 non-separable MFG into a sequence of separable subproblems.
 
 \paragraph{Contributions.}
-We make four contributions.  First, we define weakly non-separable
-Hamiltonians and the corresponding GAN-tractable regime.  Second, we formulate
-a fixed-point wrapper around separable GAN-based MFG solvers.  Third, we prove
-an explicit \(L^2\) contraction theorem for the exact outer map and derive
-Wasserstein convergence as a corollary.  Fourth, we show sharpness of the
-threshold in a linearized ergodic family and validate the predicted phase
-transition numerically.
+We make five contributions.  First, we identify a weakly non-separable class of
+MFG Hamiltonians that goes beyond the separable setting used by existing
+GAN-based solvers.  Second, we formulate a fixed-point outer iteration that
+reduces each step to a separable MFG subproblem solvable by GAN-based inner
+methods.  Third, we prove an explicit \(L^2\) contraction theorem for the exact
+outer map and derive Wasserstein convergence as a corollary.  Fourth, we show
+sharpness of the weak-coupling threshold in a linearized ergodic family.  Fifth,
+we validate the predicted phase transition numerically, including a
+traffic-flow family that motivates density--momentum coupling.
 
 \begin{table}[t]
 \centering
@@ -112,7 +121,8 @@ transition numerically.
 Method family & Non-separable \(H\) & Distributional density & Explicit rate \\
 \midrule
 GAN-based MFG solvers & No & Yes & No / implicit \\
-Physics-informed residual solvers & Yes & No & No \\
+MFDGM / PINN residual solvers & Yes & No & No \\
+Finite-difference / policy iteration & Yes & No & Problem dependent \\
 This work & Weakly & Yes, via inner solver & Yes, outer map \\
 \bottomrule
 \end{tabular}
@@ -343,9 +353,10 @@ map, not as a complete optimization guarantee for GAN training.  Its value is
 that it identifies a regime in which non-separable MFGs can be reduced to a
 sequence of separable, GAN-compatible subproblems with an explicit rate.  A full
 neural APAC-Net-style implementation, finite-training optimization analysis,
-and high-dimensional benchmarks remain outside the present analysis.  Important
-limitations are the non-vacuum condition, bounded momentum, exact inner solves
-in the main theorem, and the restriction to weak residual coupling.
+and benchmarking against MFDGM, PINN/DGM residual solvers, and finite-difference
+reference methods remain outside the present analysis.  Important limitations
+are the non-vacuum condition, bounded momentum, exact inner solves in the main
+theorem, and the restriction to weak residual coupling.
 
 \bibliographystyle{abbrvnat}
 \bibliography{references}
