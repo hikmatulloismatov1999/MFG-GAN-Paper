@@ -1,0 +1,533 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{titlesec}
+
+\titleformat{\section}[block]{\large\bfseries\color{blue!50!black}}{}{0pt}{}
+\setlength{\parskip}{0.6em}
+
+\title{Speaker Script: Extended-MFGAN talk\\
+       \large 30-minute version, simple English}
+\author{Hikmatullo Ismatov}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{[Slide 1 -- Title page]}
+
+Hello everyone. Thank you for being here today.
+
+My name is Hikmatullo Ismatov. I am from the King Abdullah University of Science
+and Technology, KAUST. This is joint work with my supervisor, Professor Diogo
+Gomes.
+
+The title of our paper is \emph{Generative Adversarial Networks for Mean Field
+Games with Weakly Non-Separable Hamiltonians}. It is a long title, but I will
+explain every word in the next 30 minutes.
+
+The main message of the talk is this: there are two big families of deep
+learning methods for Mean Field Games, and until now they could not be
+combined. We show how to combine their strengths, and we prove a very clean
+convergence rate.
+
+\section*{[Slide 2 -- Roadmap]}
+
+Let me start by telling you the structure of the talk. There are three parts.
+
+In the first part, I will explain the problem. Why are deep learning methods
+for Mean Field Games stuck in two camps that cannot talk to each other? One
+camp is GAN-based, the other is physics-informed. Each one has a serious
+weakness.
+
+In the second part, I will present our solution. It is a contraction theorem
+in the Wasserstein-2 metric, with an explicit and sharp convergence rate.
+The rate is given by a simple formula: epsilon times $L_R$, divided by lambda.
+I will explain what these symbols mean.
+
+In the third part, I will show three numerical experiments. In all three,
+the empirical convergence rate matches our theory to four decimal places.
+
+The talk is 30 minutes total. Please feel free to ask questions at any time.
+
+\section*{[Slide 3 -- What is a Mean Field Game?]}
+
+So, what is a Mean Field Game?
+
+The idea is the following. Imagine a very large population of agents. Each
+agent is rational, which means each agent wants to minimise some cost. But
+the cost depends on what the rest of the population is doing. So the agents
+interact through the population distribution.
+
+When we look for a Nash equilibrium, two things happen at the same time.
+
+First, each agent solves an optimisation problem. This gives a value function,
+called phi. The value function tells you the cost from now until the end of
+the game. Phi solves a Hamilton-Jacobi-Bellman equation, the HJB equation,
+and it goes backward in time.
+
+Second, the population evolves. The density of agents is called rho. Rho
+solves a Fokker-Planck equation, and it goes forward in time.
+
+The two equations are coupled. The gradient of phi tells the agents how to
+move. So phi sets the drift in the FP equation. And the density rho enters
+the running cost in the HJB. So rho changes the optimisation.
+
+The function $H$ is the Hamiltonian. It captures the cost and the interactions.
+The parameter nu is the diffusion. Larger nu means more random noise.
+
+Let me give you a concrete example, so you can keep it in mind. Imagine
+many cars on a road. Each driver wants to reach a destination quickly, but
+also wants to avoid traffic. The state $x$ is the position on the road,
+the density rho is how crowded the road is, and the value function phi
+tells each driver the best strategy. The Mean Field Game gives you the
+equilibrium where every driver chooses optimally, given what all the other
+drivers are doing.
+
+This system has many applications: autonomous traffic, financial markets,
+energy grids, opinion dynamics, and more recently multi-agent reinforcement
+learning.
+
+The mathematical theory of Mean Field Games is by now mature. The challenge
+is computational. Solving the coupled HJB and Fokker-Planck system in high
+dimensions is very hard. Classical finite-difference methods scale badly
+with dimension. This is where deep learning comes in.
+
+\section*{[Slide 4 -- Two families of deep MFG solvers]}
+
+Now, deep learning methods for Mean Field Games come in two families.
+
+On the left side, we have GAN-based methods. The most famous is APAC-Net,
+and another one is MFGAN. These methods learn the density rho through a
+\emph{generator} network, like a Wasserstein GAN. They give you the density
+in a distributional sense. You can sample from it, you have a Wasserstein
+convergence guarantee. This is very strong.
+
+But these methods have one big weakness. They only work when the Hamiltonian
+is \emph{separable}. Separable means that $H$ splits as $H_0$ of $x$ and $p$,
+\emph{minus} $f_0$ of $x$ and rho. The dependence on momentum and density
+do not mix. This is not just a convenience. It is a hard structural condition.
+The mathematical formula they use, called the Hopf formula, breaks if the
+Hamiltonian is not separable.
+
+On the right side, we have physics-informed methods. The most famous is MFDGM,
+which is the deep Galerkin method applied to Mean Field Games. These methods
+just minimise the residual of the PDE, using a neural network. They handle
+\emph{any} Hamiltonian, separable or not. So they are very general.
+
+But they pay a price. They give you only $L^p$ convergence with $p$ less than
+two, and they give no explicit rate. You also lose the distributional
+representation of the density.
+
+So we have a dichotomy. Power, or generality, but never both. If you want
+strong convergence guarantees, you must restrict yourself to separable
+Hamiltonians. If you want generality, you must give up the rate.
+
+This is not a happy situation. Many real applications are non-separable.
+And without an explicit rate, you do not know how many iterations to run,
+or how to compare two methods. So this is a real gap in the literature.
+
+Our paper resolves this dichotomy in a precise regime that we call
+\emph{weakly non-separable}.
+
+\section*{[Slide 5 -- The hard example: MFG-LWR]}
+
+Let me show you the canonical hard example. It is the traffic flow model
+of Huang, sometimes called MFG-LWR.
+
+The Hamiltonian is $H$ of $x$, rho, $p$ equals one half $p$ squared, minus
+the term $1$ minus rho times $p$.
+
+Why is this important? It models traffic on a highway. The density rho is
+how many cars are at position $x$. The momentum $p$ is related to their speed.
+The term $1$ minus rho times $p$ couples them. When the road is full, the
+cars slow down. So density and momentum interact in a non-trivial way.
+
+Because of this term, you cannot apply APAC-Net. The Hopf formula breaks.
+You can apply MFDGM, but you have no convergence rate. So neither family
+gives you what you want.
+
+The question of this talk is very simple: can we build a GAN-based solver
+that handles exactly this Hamiltonian, and gives an explicit, sharp
+convergence rate?
+
+The answer is yes, in a precise regime that I will define on the next slide.
+
+\section*{[Slide 6 -- The key insight]}
+
+Here is the key insight. It is very simple, but it changes everything.
+
+The observation is the following: \emph{if rho is held fixed, any non-separable
+Hamiltonian becomes separable.}
+
+Look at the diagram. On the left, we have the full non-separable Mean Field
+Game with Hamiltonian $H$ of $x$, rho, $p$. We freeze rho at the current
+iterate, called rho-$k$. Now the effective Hamiltonian, $H^k$ of $x$ and $p$,
+is just $H_0$ plus epsilon times $R$ evaluated at rho-$k$. This is now a
+function of only $x$ and $p$. It is separable in the sense the GAN solvers
+need.
+
+So we can apply APAC-Net to this separable subproblem. We get a new density,
+rho-$k$-plus-one. Then we update rho-$k$ to rho-$k$-plus-one and we repeat.
+
+This is essentially a fixed-point iteration on the population density. Each
+step is one APAC-Net call.
+
+The whole question of the rest of the talk is: when does this outer iteration
+converge, and how fast?
+
+\section*{[Slide 7 -- Weakly non-separable Hamiltonians]}
+
+Now I want to be precise about the class of problems we can handle.
+
+We say $H$ is \emph{weakly non-separable with strength epsilon} if it
+decomposes into three parts.
+
+First, a base Hamiltonian $H_0$. This part must be strongly convex in $p$,
+with constant $c_0$.
+
+Second, a Lasry-Lions monotone interaction $f_0$ of rho. The constant lambda
+measures how monotone it is. Larger lambda means stronger restoring force.
+
+Third, a coupling residual $R$. This is the part that introduces the
+non-separability. We require $R$ to be Lipschitz in rho, with constant $L_R$,
+and Lipschitz in $p$, with constant $L_R$-$p$. The number epsilon is the
+\emph{strength} of the coupling.
+
+When epsilon is zero, you get the classical separable Mean Field Game. When
+$R$ equals rho times $p$, you recover the traffic flow model. When $R$ depends
+only on rho, the constant $L_R$-$p$ is zero.
+
+Now look at the box at the bottom. The most important quantity is this:
+epsilon times $L_R$, strictly less than lambda.
+
+We call this the \emph{GAN-tractable regime}. Intuitively, the coupling
+strength must be controlled by the restoring force from the monotone
+interaction. Below this threshold, our method works. Above it, it fails.
+We will see both halves of this in the next slides.
+
+\section*{[Slide 8 -- The Extended-MFGAN algorithm]}
+
+The algorithm is essentially what I described before, written in pseudocode.
+
+We initialise rho-zero to be the initial density. Then we loop.
+
+In each iteration, we build the effective Hamiltonian $H^k$ by plugging the
+current density rho-$k$ into the residual $R$. Then we run APAC-Net on the
+resulting separable Mean Field Game. APAC-Net gives back a new density
+rho-$k$-plus-one and a new value function. We update and repeat.
+
+After $K$ outer iterations, we return the final density and value function.
+
+The total cost is $K$ times one APAC-Net run.
+
+How big does $K$ need to be? Once we prove our geometric convergence rate
+kappa, the answer is given by a simple formula. To reach a tolerance delta,
+you need $K$ equal to the ceiling of log of one over delta, divided by log
+of one over kappa. So $K$ is small. It does not depend on the dimension,
+only on how much accuracy you want.
+
+A nice sanity check: when epsilon is zero, $H^k$ does not depend on rho-$k$
+at all. The outer loop converges in one step. So Extended-MFGAN \emph{reduces
+exactly to APAC-Net} in the separable limit. Our method is a true extension,
+not a replacement.
+
+In practice, the inner APAC-Net solve is the expensive part. Each call
+trains a generator and a critic by adversarial training. So we want the
+outer loop to converge in as few iterations as possible. The contraction
+rate kappa controls exactly that. If kappa is small, very few outer
+iterations are enough. If kappa is close to one, we need more iterations.
+And if kappa is bigger than one, the iteration does not converge at all.
+So the rate kappa is the central object in our analysis.
+
+\section*{[Slide 9 -- The main result]}
+
+Now to the main theorem.
+
+Under the GAN-tractable condition, epsilon times $L_R$ less than lambda,
+the Extended-MFGAN outer iteration is a contraction in $L^2$. The contraction
+rate is exactly kappa equals epsilon times $L_R$, divided by lambda.
+
+This means: the error after iteration $k$ plus one is at most kappa times
+the error at iteration $k$. So the error decays geometrically, like kappa
+to the $k$.
+
+Because the densities are bounded, $L^2$ convergence implies Wasserstein-2
+convergence at the same rate. So we have a strict improvement over MFDGM,
+which only gets $L^p$ for $p$ less than two.
+
+This is the first \emph{explicit} convergence rate for any deep learning
+Mean Field Game solver in the non-separable setting. APAC-Net does not give
+a rate. MFDGM does not give a rate. We do.
+
+The rate is also a closed-form function of the data: epsilon, $L_R$, and
+lambda. You can read off how many iterations you need.
+
+In the next slide, I will sketch how the proof works.
+
+\section*{[Slide 10 -- Proof sketch: Lasry-Lions duality]}
+
+The proof technique is called Lasry-Lions duality. It is the same technique
+used in the classical theory to prove uniqueness of the Mean Field Game
+equilibrium. We adapt it to our perturbed non-separable setting.
+
+The high-level idea is the following. We compare two outputs of the inner
+solver, when we feed in two different frozen densities. We want to bound
+the difference of the outputs by the difference of the inputs, with a small
+constant. That constant will be our kappa.
+
+The proof has six steps.
+
+Take two Mean Field Game solutions, with densities rho-one and rho-two,
+and value functions phi-one and phi-two. We compute the time derivative
+of the inner product of delta-phi with delta-rho. Here delta means the
+difference between the two solutions.
+
+Step one: substitute the HJB equation and the Fokker-Planck equation for
+both solutions.
+
+Step two: the diffusion terms, nu times Laplacian, cancel exactly between
+the two equations. This is the magic of the Lasry-Lions trick.
+
+Step three: integrate by parts on the current term.
+
+Step four: integrate from time zero to time $T$. The boundary terms vanish
+because of the boundary conditions: delta-rho is zero at time zero, and
+delta-phi is zero at time $T$.
+
+Step five: split the resulting Hamiltonian-difference into two parts.
+The first part comes from the convex base $H_0$. By strong convexity,
+this part gives a non-positive contribution. The second part comes from
+the coupling residual $R$. This is controlled by the Lipschitz constants.
+
+Step six: combine with the Lasry-Lions monotonicity of $f_0$.
+
+The final estimate is the boxed inequality at the bottom of the slide.
+Lambda times the squared $L^2$ norm of delta-rho is at most epsilon times
+$L_R$, times the product of the input and output $L^2$ norms.
+
+Dividing by the $L^2$ norm of delta-rho, we get the contraction. Then by
+the Banach Fixed-Point Theorem, the iteration converges geometrically with
+rate kappa.
+
+\section*{[Slide 11 -- Sharpness: rate is tight]}
+
+So far, kappa is just an upper bound on the contraction rate. But actually
+it is the exact rate. I want to convince you of this.
+
+We prove this by a direct linearisation. Take the bilinear case, where $R$
+equals rho times $p$. Take the ergodic Mean Field Game on the torus. The
+unique uniform equilibrium has rho-star identically equal to one.
+
+Now we linearise the outer fixed-point map at this point.
+
+The stationary Fokker-Planck equation reduces to: Laplacian of delta-phi
+equals zero. On the torus, this forces the gradient of delta-phi to vanish.
+
+With this, the linearised HJB collapses to a simple scalar relation:
+minus lambda times delta-rho, plus epsilon times $L_R$ times delta-rho-bar,
+equals zero.
+
+Solving: delta-rho equals epsilon $L_R$ over lambda, times delta-rho-bar.
+
+So the operator norm of the linearised map is exactly kappa. The upper
+bound in the theorem is attained. It is not just a bound. It is the
+rate.
+
+\section*{[Slide 12 -- Necessity: condition is required]}
+
+The previous slide shows the rate is tight. This slide goes one step further:
+the GAN-tractable condition is \emph{necessary}.
+
+We use the same example. The same ergodic Mean Field Game. The same
+linearisation. We just look at what happens when epsilon times $L_R$ is
+larger than or equal to lambda.
+
+If epsilon $L_R$ equals lambda, the operator norm of the linearised map is
+exactly one. So the error stays the same forever. No convergence.
+
+If epsilon $L_R$ is greater than lambda, the operator norm is greater than
+one. The error grows geometrically. The iteration diverges. So the
+condition is not just sufficient, it is also necessary.
+
+This matters for practice. If you have a problem with epsilon $L_R$ above
+the threshold, our method will not work. You should use MFDGM instead.
+The boundary between the two regimes is exactly the GAN-tractable condition.
+
+Look at the cartoon at the bottom. To the left of the threshold, you get
+geometric decay. To the right, geometric growth. There is a sharp phase
+transition at epsilon-star equals lambda over $L_R$.
+
+So combining slide eleven and slide twelve: the GAN-tractable condition
+is \emph{both necessary and sufficient} for linear convergence in the
+linearised regime. This is unusual. Usually a contraction theorem only gives
+you a bound. Ours gives you the actual rate.
+
+\section*{[Slide 13 -- Experiment 1: separable limit]}
+
+Now I want to show numerical results. Three experiments. Each one validates
+a piece of the theory.
+
+The first experiment is the simplest. The theory says that at epsilon equals
+zero, one outer iteration is enough.
+
+Look at the highlighted row in the table. At epsilon equals zero, the error
+after one iteration is exactly zero. Down to machine precision. After eight
+iterations, still zero.
+
+For epsilon greater than zero, the error decays geometrically. The rate is
+exactly equal to epsilon, just as the theory predicts.
+
+This is a sanity check, but an important one. It confirms what the algorithm
+description claimed: at epsilon equals zero, Extended-MFGAN reduces exactly
+to one APAC-Net call.
+
+\section*{[Slide 14 -- Experiment 2: bilinear MFG-LWR]}
+
+The second experiment is the bilinear traffic flow model. Here the structure
+is more interesting.
+
+For $R$ equals rho times $p$, when you linearise at the uniform equilibrium,
+the optimal momentum is one minus epsilon. So the Lipschitz constant $L_R$,
+which is the absolute value of the momentum, is the absolute value of one
+minus epsilon.
+
+So the contraction rate is epsilon times the absolute value of one minus
+epsilon, divided by lambda.
+
+This formula is non-monotonic. It grows from zero, reaches a maximum at
+epsilon equals one half, and goes back to zero at epsilon equals one.
+
+For lambda equal to zero point two, the equation kappa equals one has two
+roots in the interval zero to one: at about zero point two seven six, and
+at about zero point seven two four.
+
+You see this on the left panel. The empirical rate, shown as red dots,
+sits exactly on the theoretical curve, shown as a black dashed line. Two
+phase transitions, just as predicted.
+
+On the right panel: the convergence curves for each value of epsilon.
+Below the first threshold and above the second, you see geometric decay.
+Between them, geometric growth.
+
+Empirical and theoretical rates agree to four decimal places, across all
+eleven values of epsilon.
+
+I want to emphasise that this is not just a qualitative match. It is a
+quantitative match to four digits. This is a strong validation of the
+theory, and it is a feature of having an explicit rate. With a method
+that gives you no rate, you cannot do this kind of comparison at all.
+
+\section*{[Slide 15 -- Experiment 3: density-only phase transition]}
+
+The third experiment is the cleanest validation. We use density-only
+coupling, with both lambda and $L_R$ equal to one. So the predicted
+threshold is at epsilon equals one.
+
+We sweep epsilon from zero point one to one point five.
+
+On the left panel, the blue dots are the empirical rate, and the black
+dashed line is the theoretical kappa. They lie on top of each other.
+The transition happens exactly at epsilon equals one, marked by the red
+vertical line.
+
+On the right panel, the convergence curves. For epsilon equals zero point
+one, in the lightest colour, the error drops fourteen orders of magnitude
+in twelve iterations. For epsilon equals one point five, in the brightest
+colour, the error grows about an order of magnitude. The transition between
+the two regimes is sharp.
+
+Look at the small table at the bottom. At epsilon equals zero point one,
+the final error is three point five times ten to the minus fourteen.
+At epsilon equals one, the iteration stagnates. At epsilon equals one
+point five, the error is four point six. Empirical kappa equals
+theoretical kappa to all four digits.
+
+\section*{[Slide 16 -- Where Extended-MFGAN sits]}
+
+Let me put our method in context with prior work.
+
+Top row, APAC-Net and MFGAN: they cannot handle non-separable Hamiltonians.
+This is the red cell. They have distributional representation, Wasserstein-1
+convergence, but the rate is implicit.
+
+Middle row, MFDGM: handles any non-separable Hamiltonian, the green cell.
+But pointwise neural network representation, only $L^p$ convergence for
+$p$ less than two, and no rate. Three red cells.
+
+Bottom row, Extended-MFGAN, our method: weakly non-separable Hamiltonian,
+distributional rho through the generator, Wasserstein-2 convergence, and
+explicit rate. All four green cells. We occupy the gap that no prior
+method filled.
+
+The trade-off is honest. We are restricted to the GAN-tractable regime.
+Above the threshold, MFDGM remains the right tool. We do not replace
+MFDGM, we complement it.
+
+\section*{[Slide 17 -- Contributions in one slide]}
+
+Let me summarise our contributions.
+
+First: a new class of Hamiltonians. Weakly non-separable. It interpolates
+between the separable and non-separable cases.
+
+Second: a new algorithm. Extended-MFGAN. It decomposes a non-separable
+Mean Field Game into a sequence of separable subproblems, each solved
+by APAC-Net.
+
+Third: a Wasserstein-2 contraction theorem. With explicit rate kappa
+equals epsilon $L_R$ over lambda. The first explicit rate for any deep
+Mean Field Game solver in this setting.
+
+Fourth: that rate is sharp, and the condition is necessary. So our
+theorem cannot be improved.
+
+Fifth: numerical experiments where the empirical rate matches the theory
+to four decimal places. Across three different benchmarks.
+
+\section*{[Slide 18 -- Future directions]}
+
+Briefly, what comes next.
+
+First, the present numerics use a clean spectral scheme. A full neural
+network implementation of the inner GAN solver is engineering work, but
+a natural next step.
+
+Second, with that implementation, a full pipeline-level benchmark against
+MFDGM.
+
+Third, scaling to high dimensions.
+
+Fourth, a hybrid algorithm. Use the GAN inner solver when the GAN-tractable
+condition holds. Fall back to MFDGM when it does not.
+
+Fifth, extending the framework to mean field control problems, where a
+social planner optimises over the whole population.
+
+And sixth, applications to multi-agent reinforcement learning and to
+engineering systems modelled by congestion-type Mean Field Games.
+
+I think the most exciting direction is the hybrid algorithm. The two
+families, GAN-based and physics-informed, do not need to compete. They
+can work together. Below the threshold, use the GAN solver and enjoy the
+explicit rate. Above the threshold, fall back to MFDGM. The threshold
+itself is computable from the problem data, so the user can choose
+automatically.
+
+\section*{[Slide 19 -- Thank you]}
+
+This brings me to the end of the talk.
+
+To summarise in one sentence: we have shown how to combine the strengths
+of GAN-based and physics-informed deep solvers for Mean Field Games, in
+a precise weakly non-separable regime, with the first explicit and sharp
+Wasserstein convergence rate.
+
+The full paper, the code for all the experiments, and these slides are
+available on GitHub. The link is on the screen. You can also reach me
+by email.
+
+Thank you for your attention. I am happy to take any questions.
+
+\end{document}
