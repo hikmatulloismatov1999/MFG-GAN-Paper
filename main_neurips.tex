@@ -42,20 +42,19 @@ with Weakly Non-Separable Hamiltonians}
 \maketitle
 
 \begin{abstract}
-GAN-based solvers for mean field games (MFGs) learn population densities
-distributionally, but existing formulations rely on separable Hamiltonians.
-Many models of interest, including traffic-flow MFGs, contain non-separable
-density--momentum couplings.  We introduce a weakly non-separable class
-\(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p)\) and study a fixed-point
-outer iteration that freezes the density inside the non-separable residual.
-Each outer step is then a separable MFG subproblem and can be solved by an
-existing GAN-based inner method.  Under Lasry--Lions monotonicity, strong
-convexity of the base Hamiltonian, bounded densities, and bounded momentum, we
-prove that the exact outer map is a contraction in \(L^2\) with explicit rate
-\(\kappa=\eps L_R/\lambda\).  This implies convergence in \(\W_2\) with an
-explicit induced rate.  We also show that the threshold is sharp for a
-linearized ergodic family on the torus, and provide numerical experiments that
-validate the predicted linearized phase transition.
+GAN-based solvers for mean field games (MFGs) represent population densities
+distributionally, but their existing formulations rely on separable
+Hamiltonians.  Many models, including traffic-flow MFGs, couple density and
+momentum directly.  We study the weakly non-separable class
+\(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p)\) through an outer
+fixed-point iteration that freezes the density in the residual term.  Each
+outer step is then a separable MFG subproblem and can be passed to a GAN-based
+inner solver.  Under Lasry--Lions monotonicity, strong convexity of the base
+Hamiltonian, bounded densities, and bounded momentum, we prove that the exact
+outer map is an \(L^2\) contraction with explicit rate
+\(\kappa=\eps L_R/\lambda\).  This gives an induced convergence bound in
+\(\W_2\).  We prove sharpness for a linearized ergodic family on the torus and
+verify the predicted phase transition in deterministic linearized experiments.
 \end{abstract}
 
 \section{Introduction}
@@ -76,13 +75,13 @@ cao2021connecting,lin2021apac,ruthotto2020machine}.  The separability
 assumption, however, excludes important models where density and momentum are
 coupled directly, including traffic-flow MFGs \citep{huang2019mfg}.
 
-This paper asks whether the GAN-compatible structure can be retained for a
-controlled class of non-separable Hamiltonians.  Our observation is simple:
-if the density appearing in the non-separable part is temporarily frozen, the
-remaining subproblem is separable in the sense required by existing GAN-based
-MFG solvers.  We therefore separate the analysis into an outer fixed-point map,
-which handles the non-separable coupling, and an inner separable solver, which
-may be implemented by any GAN-based MFG method.
+We study a restricted non-separable regime in which the GAN-compatible
+structure can still be used.  The key step is to freeze the density appearing
+in the non-separable part; with that density fixed, the remaining subproblem is
+separable in the sense required by existing GAN-based MFG solvers.  The
+analysis then splits into an outer fixed-point map, which handles the
+non-separable coupling, and an inner separable solver, which may be implemented
+by any GAN-based MFG method.
 
 Several alternatives address parts of this gap.  Physics-informed MFG solvers
 such as MFDGM handle non-separable Hamiltonians by minimizing PDE residuals
@@ -90,8 +89,8 @@ directly, but their guarantees are not distributional contraction rates
 \citep{sirignano2018dgm,raissi2019physics,assouline2023deep}.  Classical
 finite-difference and policy-iteration schemes provide useful low-dimensional
 reference solvers, but do not provide a GAN-compatible distributional learning
-pipeline \citep{achdou2010mean,lavigne2023policy,hu2024recent}.  Our result is
-therefore best understood as an outer contraction principle for turning a weak
+pipeline \citep{achdou2010mean,lavigne2023policy,hu2024recent}.  Our
+contribution is an outer contraction principle for turning a weak
 non-separable MFG into a sequence of separable subproblems.
 
 \paragraph{Contributions.}
@@ -292,8 +291,10 @@ constant \(L_R(p^\star)=|1-\eps|\), giving the predicted local rate
 \[
   \kappa_{\mathrm{traffic}}=\frac{\eps |1-\eps|}{\lambda}.
 \]
-For \(\lambda=0.2\), the equation \(\kappa_{\mathrm{traffic}}=1\) has two roots,
-approximately \(0.276\) and \(0.724\), giving a two-sided phase transition.
+For \(\lambda=0.2\) and \(0\leq\eps\leq1\), the equation
+\(\kappa_{\mathrm{traffic}}=1\) has two roots, approximately \(0.276\) and
+\(0.724\), giving a two-sided phase transition in the normalized traffic
+range.
 
 \section{Experiments: Linearized Sharpness Validation}
 
@@ -337,9 +338,9 @@ map, not as a complete optimization guarantee for GAN training.  Its value is
 that it identifies a regime in which non-separable MFGs can be reduced to a
 sequence of separable, GAN-compatible subproblems with an explicit rate.  A full
 neural APAC-Net-style implementation, finite-training optimization analysis,
-and high-dimensional benchmarks are natural next steps.  Important limitations
-are the non-vacuum condition, bounded momentum, exact inner solves in the main
-theorem, and the restriction to weak residual coupling.
+and high-dimensional benchmarks remain outside the present analysis.  Important
+limitations are the non-vacuum condition, bounded momentum, exact inner solves
+in the main theorem, and the restriction to weak residual coupling.
 
 \bibliographystyle{abbrvnat}
 \bibliography{references}
