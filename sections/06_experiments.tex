@@ -1,18 +1,36 @@
-\section{Numerical Experiments}
+\section{Numerical Validation of the Linearised Rate}
 \label{sec:experiments}
 
-We validate the main theoretical result by demonstrating the sharp phase
-transition predicted by Theorem~\ref{thm:main} and Propositions
-\ref{prop:bilinear_exact}--\ref{prop:necessity}.
-All experiments are run on the ergodic MFG on the torus
-$\Omega = \mathbb{T}$ with $f_0(\rho) = \lambda\rho$.
+\paragraph{Scope.}
+The numerical results in this section validate the \emph{linearised}
+contraction rate proved in \Cref{prop:bilinear_exact} and
+\Cref{prop:necessity}.  Concretely, we iterate the analytically
+derived linearisation of the outer fixed-point map $\mathcal{T}$ at the
+uniform equilibrium and compare the empirical contraction with the
+theoretical rate $\kappa = \eps L_R/\lambda$.
+
+\paragraph{What is \emph{not} done here.}
+We do \emph{not} train an APAC-Net inner solver, nor solve the full
+nonlinear PDE pipeline of \Cref{alg:main} end-to-end.  A full
+neural-network implementation of the inner GAN solver, and a
+pipeline-level benchmark against MFDGM, are left to future work
+(\Cref{sec:conclusion}).  The present experiments are deliberately
+narrow: they target the regime in which our theorem is provably tight
+and validate the predicted rate to four-digit accuracy.
+
+\paragraph{Setting.}
+All experiments use the ergodic MFG on the torus
+$\Omega = \mathbb{T}$ with $f_0(\rho) = \lambda\rho$ and $\nu = 0$.
 Experiments~1 (separable limit) and 3 (phase transition) use
-the density-only coupling $R(x,\rho) = L_R\rho$ with $H_0(p) = \tfrac{1}{2}p^2$;
-Experiment~2 uses the bilinear MFG-LWR Hamiltonian
-$H(x,\rho,p) = \tfrac{1}{2}p^2 - (1-\rho)p$.
-In each case, the linearised outer map at the uniform equilibrium has
-operator norm equal to the predicted rate, allowing a direct comparison
-of empirical and theoretical contraction.
+the density-only coupling $R(x,\rho) = L_R\rho$ with
+$H_0(p) = \tfrac{1}{2}p^2$;
+Experiment~2 uses the parameterised bilinear traffic family
+\eqref{eq:Heps}, with $H_1$ the original MFG-LWR Hamiltonian.
+For each problem, the linearised outer map is diagonal in Fourier modes;
+its operator norm is $\kappa = \eps L_R/\lambda$ for the density-only
+case and $\kappa = \eps|1-\eps|/\lambda$ for the parameterised bilinear
+case (\Cref{prop:bilinear_exact}).
+This is the prediction the experiments test.
 
 \subsection{Setup}
 
@@ -197,28 +215,29 @@ geometric growth above.}
 The exact agreement between $\hat\kappa$ and the theoretical rate
 $\kappa = \varepsilon L_R/\lambda$ at all $\varepsilon$ is a consequence of
 two facts established in the paper.
-First, Proposition~\ref{prop:bilinear_exact} shows that the linearised
-fixed-point map at the uniform equilibrium has operator norm exactly
-$\varepsilon L_R/\lambda$, so the upper bound in Theorem~\ref{thm:main}
-is attained.
-Second, Proposition~\ref{prop:necessity} shows that this rate persists
-through the iteration: $\|\rho^k - \rho^*\|_{L^2}$ scales as
+First, \Cref{prop:bilinear_exact} shows that the linearised outer map at the
+uniform equilibrium has operator norm exactly $\varepsilon L_R/\lambda$,
+so the upper bound in \Cref{thm:main} is attained on this family.
+Second, \Cref{prop:necessity} shows that this rate persists through the
+iteration: $\|\rho^k - \rho^*\|_{L^2}$ scales as
 $\kappa^k \|\rho^0 - \rho^*\|_{L^2}$ for all $k$.
-The numerical experiment confirms both predictions to machine precision
-in the linearised regime.
+The numerical experiment confirms both predictions to four-digit
+accuracy in the linearised regime.
 
-Across all three experiments the empirical contraction rate matches the
+Across the three experiments the empirical contraction rate matches the
 theoretical prediction to four decimal places, in regimes ranging from
 the trivial separable limit ($\varepsilon = 0$, Experiment~1) through
-the bilinear MFG-LWR with two phase transitions (Experiment~2) to the
-density-only sweep with a single sharp threshold (Experiment~3).
-Together these establish the central claim of the paper:
-the GAN-tractable condition $\varepsilon L_R < \lambda$ is both
-necessary and sufficient for geometric convergence, with rate exactly
-$\kappa = \varepsilon L_R/\lambda$.
+the parameterised bilinear traffic family with two phase transitions
+(Experiment~2) to the density-only sweep with a single sharp threshold
+(Experiment~3).
+In the linearised regime, this confirms the central
+analytical claim of the paper: the GAN-tractable condition
+$\varepsilon L_R < \lambda$ is necessary and sufficient for geometric
+convergence, with rate exactly $\kappa = \varepsilon L_R/\lambda$.
+Whether the rate persists at the same value in the fully nonlinear
+PDE regime, beyond a neighbourhood of the uniform equilibrium, is an
+open question.
 
-A fully nonlinear PDE-level comparison against MFDGM and a
-high-dimensional scaling study are natural extensions left for future work.
-The linearised regime studied here is the one in which the
-contraction theorem is provably tight, and the experiments are
-designed to validate this tightness directly.
+A pipeline-level comparison against MFDGM, a full neural-network
+implementation of the inner GAN solver, and a high-dimensional scaling
+study are natural extensions left for future work.

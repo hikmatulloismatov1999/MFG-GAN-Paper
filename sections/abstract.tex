@@ -6,17 +6,18 @@ but provide only weak pointwise approximations with no explicit convergence rate
 We introduce the class of \emph{weakly non-separable Hamiltonians}, where the
 coupling between density and momentum is measured by a single parameter,
 and propose Extended-MFGAN, a fixed-point GAN iteration that handles this class
-without abandoning the distributional learning and Wasserstein guarantees of
-GAN-based solvers. Our main result is a contraction theorem in the Wasserstein-2
-metric, with a geometric convergence rate determined explicitly by the ratio of
-coupling strength to Lasry-Lions monotonicity. This provides the first rigorous
-criterion separating the regimes where GAN methods outperform physics-informed
-approaches and vice versa, and the first explicit convergence rate for any deep
-learning MFG solver in the non-separable setting. We further prove that the
-condition is sharp via an explicit linearised counterexample on the torus,
-and validate the contraction rate numerically across three Mean Field Games,
-including the MFG-LWR traffic flow benchmark, recovering the predicted
-phase transitions to four-digit accuracy.
+without abandoning the distributional learning of GAN-based solvers.
+Our main result is an $L^2$ contraction theorem with explicit geometric rate
+determined by the ratio of coupling strength to Lasry-Lions monotonicity,
+which yields Wasserstein-2 convergence with the same exponential rate up to
+the standard $L^2$-to-$\mathcal{W}_2$ square-root scaling.
+This is, to our knowledge, the first explicit convergence rate for a
+deep learning MFG solver in the non-separable setting.
+We further prove the rate is sharp on a parameterised bilinear traffic-flow
+family, give a linearised counterexample showing the GAN-tractable condition
+is necessary, and validate the rate numerically across three Mean Field
+Games, recovering the predicted phase transitions to four-digit accuracy
+in the linearised regime.
 
 \smallskip
 \noindent\textit{Keywords:} Mean Field Games, Generative Adversarial Networks,

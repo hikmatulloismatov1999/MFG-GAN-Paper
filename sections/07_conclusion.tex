@@ -3,12 +3,13 @@
 
 We introduced weakly non-separable Hamiltonians and the Extended-MFGAN
 algorithm, which bridges the gap between GAN-based and physics-informed
-solvers for Mean Field Games. The central contribution is a Wasserstein-2
-contraction theorem that provides the first explicit convergence rate for
-MFGs with non-separable Hamiltonians, and identifies a sharp criterion
-separating the regime where GAN methods are provably superior
-(\Cref{prop:gap}) from the
-regime where physics-informed methods should be preferred.
+solvers for Mean Field Games. The central contribution is an $L^2$
+contraction theorem (\Cref{thm:main}) yielding $\mathcal{W}_2$ convergence
+(\Cref{cor:W2}); this is the first explicit convergence rate for a
+deep-learning MFG solver in the non-separable setting, and it identifies a
+sharp criterion (\Cref{prop:gap}) separating the regime where GAN-based
+methods provide stronger convergence guarantees from the regime where
+physics-informed methods are preferred.
 
 \paragraph{Limitations.}
 The contraction theorem covers densities bounded away from vacuum

@@ -68,11 +68,12 @@ General Lipschitz & Lipschitz in $\rho$ & $L_R$ & Mean field control \\
 \label{sec:traffic}
 
 The MFG-LWR traffic model \citep{huang2019mfg} is the canonical
-non-separable benchmark. Its Hamiltonian is
+non-separable benchmark.  Its original Hamiltonian is
 \[
-  H(x,\rho,p) = \tfrac{1}{2}\norm{p}^2 - (1-\rho)\,p.
+  H_{\mathrm{LWR}}(x,\rho,p) = \tfrac{1}{2}\norm{p}^2 - (1-\rho)\,p,
 \]
-Using decomposition \eqref{eq:decomp} with $\eps = 1$:
+which corresponds to the choice $\eps=1$ in the decomposition
+\eqref{eq:decomp} with
 \[
   H_0(x,p) = \tfrac{1}{2}\norm{p}^2 - p,
   \qquad
@@ -80,39 +81,80 @@ Using decomposition \eqref{eq:decomp} with $\eps = 1$:
   \qquad
   f_0(x,\rho) = f_0(\rho).
 \]
-Since $R$ is linear in $\rho$, the Lipschitz constant is
-$L_R = \norm{p}_\infty \leq u_{\max}$ (speeds are physically bounded).
+For the rest of this paper we study the parameterised \emph{family}
+\begin{equation}\label{eq:Heps}
+  H_\eps(x,\rho,p) \;\coloneqq\; \tfrac{1}{2}\norm{p}^2 - p + \eps\,\rho\,p,
+  \qquad \eps \in [0,\infty),
+\end{equation}
+so that $H_0$ is a separable MFG, $H_1 = H_{\mathrm{LWR}}$ recovers the
+original traffic model, and $\eps$ is the experimental control parameter
+sweep used in \Cref{sec:experiments}.
+By \Cref{ass:pmax} the admissible region is $|p|\leq u_{\max}$, on which
+$L_R = u_{\max}$ (since $|R(\rho_1,p)-R(\rho_2,p)|=|p||\rho_1-\rho_2|$
+and speeds are physically bounded).
 
 \begin{proposition}[Bilinear exactness and tight rate]
 \label{prop:bilinear_exact}
-For $R(x,\rho,p) = \rho\cdot p$, the coupling is linear in $\rho$.
-Consequently the effective Hamiltonian
-$H^k(x,p) = H_0(x,p) + \eps\,\rho^k(x,t)\,p$
-is the \emph{exact} (not approximated) Hamiltonian for the subproblem
-at iteration $k$; no Taylor-expansion error is introduced.
-Moreover, the convergence rate $\kappa = \eps\, u_{\max}/\lambda$ in
-\Cref{thm:main} is \emph{sharp}: the linearized fixed-point map
-at the equilibrium $\rho^*$ has operator norm exactly $\eps L_R/\lambda$,
-so the $O(\kappa^k)$ decay cannot be improved by a factor better than
-$1 + o(1)$.
+Let $R(x,\rho,p) = \rho\cdot p$, so the family
+$H_\eps(x,\rho,p) = H_0(x,p) + \eps\,\rho\, p$ with
+$H_0(p) = \tfrac{1}{2}|p|^2 - p$ recovers the original MFG-LWR Hamiltonian
+at $\eps = 1$.  For this family:
+\begin{enumerate}
+  \item The effective Hamiltonian
+        $H^k(x,p) = H_0(x,p) + \eps\,\rho^k(x,t)\,p$
+        is the \emph{exact} (not approximated) Hamiltonian for the
+        subproblem at iteration $k$; no Taylor-expansion error is
+        introduced.
+  \item The convergence rate of \Cref{thm:main}, evaluated at the no-drift
+        uniform equilibrium, is \emph{sharp}: the linearised outer map
+        $\mathcal{T}$ has operator norm $\eps\,|1-\eps|/\lambda$,
+        which equals $\eps L_R(\rho^*,p^*)/\lambda$ with
+        $L_R(\rho^*,p^*) = |p^*| = |1-\eps|$ (\Cref{ass:lip,ass:pmax}).
+\end{enumerate}
 \end{proposition}
 \begin{proof}
-Linearity in $\rho$ is immediate.
-For sharpness, consider the ergodic MFG on the torus $\Omega = \mathbb{T}^d$
-with $f_0(\rho) = \lambda\rho$ and $R(x,\rho) = L_R\rho$ (density-only,
-for clarity).
-The uniform profile $\rho^* \equiv |\Omega|^{-1}$ is the unique equilibrium.
-Linearizing at $\rho^* = 1$ (after normalization $|\Omega|=1$):
-the stationary FP equation $\Delta(\delta\varphi) = 0$ forces
-$\delta\varphi = \mathrm{const}$, and the linearized HJB then gives
+\textit{Linearity in $\rho$.} Immediate from $R = \rho p$.
+
+\textit{Sharpness.}  Consider the ergodic MFG on the torus
+$\Omega = \mathbb{T}^d$ with $f_0(\rho) = \lambda\rho$, $\nu = 0$, and
+$H_\eps$ as above.  The no-drift uniform equilibrium has
+$\rho^* \equiv 1$ and constant momentum $p^*$ satisfying
+$\nabla_p H_\eps(\rho^*,p^*) = p^* - 1 + \eps = 0$, i.e.\ $p^* = 1 - \eps$.
+
+Linearise about $(\rho^*,p^*)$.  Write $\rho = 1+\delta\rho$,
+$\bar\rho = 1+\delta\bar\rho$, $\nabla\varphi = p^* + \delta p$ with
+$\delta p = \nabla(\delta\varphi)$.  The relevant partial derivatives at
+$(1,p^*)$ are
 \[
-  -\lambda\,\delta\rho + \eps\, L_R\,\delta\bar\rho = 0
-  \quad\Longrightarrow\quad
-  \delta\rho = \frac{\eps\, L_R}{\lambda}\,\delta\bar\rho.
+  \partial_p H_\eps = 0,\qquad
+  \partial_\rho H_\eps = \eps\,p^* = \eps(1-\eps),\qquad
+  \partial_{pp}^2 H_\eps = 1,\qquad
+  \partial_{p\rho}^2 H_\eps = \eps.
 \]
-Hence $\mathrm{Lip}(\mathcal{T}|_{\rho^*}) = \eps L_R/\lambda = \kappa$
-exactly, and $\|\rho^k - \rho^*\|_{L^2} = \kappa^k\|\rho^0-\rho^*\|_{L^2}$
-for all small perturbations.
+The first-order linearised system is therefore
+\begin{align*}
+  \text{(HJB)}\quad &
+  \nu\Delta(\delta\varphi) - \eps(1-\eps)\,\delta\bar\rho
+  + \lambda\,\delta\rho = 0, \\
+  \text{(FP)}\quad &
+  -\nu\Delta(\delta\rho) - \Delta(\delta\varphi)
+  - \eps\,\partial_x(\delta\bar\rho) = 0.
+\end{align*}
+Take Fourier modes on $\mathbb{T}^d$.  For $\nu = 0$ the FP equation
+forces $\Delta(\delta\varphi) = -\eps\,\partial_x(\delta\bar\rho)$,
+which after substitution into HJB gives
+\[
+  \lambda\,\delta\rho = \eps(1-\eps)\,\delta\bar\rho
+  \quad\Longrightarrow\quad
+  \delta\rho = \frac{\eps(1-\eps)}{\lambda}\,\delta\bar\rho
+  \;=\; \frac{\eps\,L_R(\rho^*,p^*)}{\lambda}\,\delta\bar\rho.
+\]
+The signed factor $\eps(1-\eps)$ has absolute value
+$\eps|1-\eps| = \eps L_R(\rho^*,p^*)$, so the operator norm of the
+linearised map equals $\eps L_R(\rho^*,p^*)/\lambda$ exactly.
+Hence $\|\rho^k-\rho^*\|_{L^2} = (\eps L_R/\lambda)^k\,\|\rho^0-\rho^*\|_{L^2}$
+for small perturbations, and the upper bound of \Cref{thm:main} cannot be
+improved.
 \end{proof}
 
 \begin{remark}[Role of the interaction term]
