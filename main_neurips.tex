@@ -103,6 +103,30 @@ and derive Wasserstein convergence as a corollary.  Fourth, we show sharpness
 of the threshold in a linearized ergodic family and validate the predicted
 phase transition numerically.
 
+\begin{table}[t]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Method family & Non-separable \(H\) & Distributional density & Explicit rate \\
+\midrule
+GAN-based MFG solvers & No & Yes & No / implicit \\
+Physics-informed residual solvers & Yes & No & No \\
+This work & Weakly & Yes, via inner solver & Yes, outer map \\
+\bottomrule
+\end{tabular}
+\caption{Positioning.  The proposed contribution is an outer contraction
+framework: it keeps the separable GAN-compatible inner problem while controlling
+weak non-separable residual coupling.}
+\label{tab:positioning}
+\end{table}
+
+\paragraph{Scope.}
+The analysis does not prove convergence of stochastic neural-network training.
+Instead, it proves that if the separable inner problem is solved exactly, or up
+to a controlled error, then the non-separable outer iteration contracts.  This
+separation is useful because optimization guarantees for the inner GAN solver
+can be improved independently of the outer fixed-point analysis.
+
 \section{Weakly Non-Separable Hamiltonians}
 
 \begin{definition}
@@ -153,6 +177,17 @@ terminal cost \(g\), outer steps \(K\), inner steps \(N\)
 \State \Return \((\varphi^K,\rho^K)\)
 \end{algorithmic}
 \end{algorithm}
+
+When the inner solver is approximate, the outer error does not disappear but is
+controlled by the usual perturbed fixed-point bound.  If
+\(\norm{\rho_N^{k+1}-\mathcal{T}(\rho_N^k)}_{L^2}\leq\delta_N\), then
+\[
+  \norm{\rho_N^k-\rho^\star}_{L^2}
+  \leq \kappa^k\norm{\rho^0-\rho^\star}_{L^2}
+  +\frac{\delta_N}{1-\kappa}.
+\]
+Thus the outer theory converts inner-solver accuracy into an explicit bias
+floor.  The proof is in the appendix.
 
 \section{Convergence of the Exact Outer Map}
 
@@ -265,6 +300,8 @@ approximately \(0.276\) and \(0.724\), giving a two-sided phase transition.
 The experiments validate the sharpness predictions of the exact linearized
 outer map.  They do not train a full neural GAN pipeline; rather, they isolate
 the part of the theory responsible for the threshold and contraction rate.
+This is the quantity controlled by \Cref{thm:l2_contraction_neurips}, so the
+experiments test the theorem's rate and failure threshold directly.
 
 \begin{table}[t]
 \centering
