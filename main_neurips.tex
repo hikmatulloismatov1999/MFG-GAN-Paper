@@ -32,8 +32,8 @@
 \newcommand{\Div}{\operatorname{div}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 
-\title{A GAN-Compatible Fixed-Point Method for Mean Field Games\\
-with Weakly Non-Separable Hamiltonians}
+\title{A Fixed-Point Reduction for Weakly Non-Separable Mean Field Games\\
+with GAN-Compatible Inner Solvers}
 
 \author{Anonymous Authors}
 
@@ -45,16 +45,17 @@ with Weakly Non-Separable Hamiltonians}
 GAN-based solvers for mean field games (MFGs) represent population densities
 distributionally, but their existing formulations rely on separable
 Hamiltonians.  Many models, including traffic-flow MFGs, couple density and
-momentum directly.  We study the weakly non-separable class
-\(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p)\) through an outer
-fixed-point iteration that freezes the density in the residual term.  Each
-outer step is then a separable MFG subproblem and can be passed to a GAN-based
-inner solver.  Under Lasry--Lions monotonicity, strong convexity of the base
-Hamiltonian, bounded densities, and bounded momentum, we prove that the exact
-outer map is an \(L^2\) contraction with explicit rate
-\(\kappa=\eps L_R/\lambda\).  This gives an induced convergence bound in
-\(\W_2\).  We prove sharpness for a linearized ergodic family on the torus and
-verify the predicted phase transition in deterministic linearized experiments.
+momentum directly.  We give a fixed-point reduction for the weakly
+non-separable class
+\(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p)\): freeze the density in
+the residual term, solve the resulting separable MFG, and iterate.  Each inner
+problem has the structure required by existing GAN-based MFG solvers.  Under
+Lasry--Lions monotonicity, strong convexity of the base Hamiltonian, bounded
+density, and bounded momentum, the exact outer map is an \(L^2\) contraction
+with rate \(\kappa=\eps L_R/\lambda\), yielding an induced \(\W_2\) convergence
+bound.  We prove that this threshold is sharp for a linearized ergodic family
+on the torus and verify the predicted phase transition in deterministic
+linearized experiments.
 \end{abstract}
 
 \section{Introduction}
@@ -81,7 +82,9 @@ in the non-separable part; with that density fixed, the remaining subproblem is
 separable in the sense required by existing GAN-based MFG solvers.  The
 analysis then splits into an outer fixed-point map, which handles the
 non-separable coupling, and an inner separable solver, which may be implemented
-by any GAN-based MFG method.
+by any GAN-based MFG method.  The resulting contribution is a reduction theorem
+that identifies when separable adversarial MFG solvers can be used inside a
+provably contractive outer loop.
 
 Several alternatives address parts of this gap.  Physics-informed MFG solvers
 such as MFDGM handle non-separable Hamiltonians by minimizing PDE residuals
@@ -95,12 +98,12 @@ non-separable MFG into a sequence of separable subproblems.
 
 \paragraph{Contributions.}
 We make four contributions.  First, we define weakly non-separable
-Hamiltonians and the corresponding GAN-tractable regime.  Second, we propose
-Extended-MFGAN, a fixed-point wrapper around separable GAN-based MFG solvers.
-Third, we prove an explicit \(L^2\) contraction theorem for the exact outer map
-and derive Wasserstein convergence as a corollary.  Fourth, we show sharpness
-of the threshold in a linearized ergodic family and validate the predicted
-phase transition numerically.
+Hamiltonians and the corresponding GAN-tractable regime.  Second, we formulate
+a fixed-point wrapper around separable GAN-based MFG solvers.  Third, we prove
+an explicit \(L^2\) contraction theorem for the exact outer map and derive
+Wasserstein convergence as a corollary.  Fourth, we show sharpness of the
+threshold in a linearized ergodic family and validate the predicted phase
+transition numerically.
 
 \begin{table}[t]
 \centering
@@ -120,11 +123,12 @@ weak non-separable residual coupling.}
 \end{table}
 
 \paragraph{Scope.}
-The analysis does not prove convergence of stochastic neural-network training.
-Instead, it proves that if the separable inner problem is solved exactly, or up
-to a controlled error, then the non-separable outer iteration contracts.  This
-separation is useful because optimization guarantees for the inner GAN solver
-can be improved independently of the outer fixed-point analysis.
+The guarantee is conditional on the quality of the separable inner solve.  It
+does not prove convergence of stochastic neural-network training.  Instead, it
+proves that if the inner problem is solved exactly, or up to a controlled
+error, then the non-separable outer iteration contracts.  This separation is
+useful because optimization guarantees for the inner GAN solver can be improved
+independently of the outer fixed-point analysis.
 
 \section{Weakly Non-Separable Hamiltonians}
 
@@ -148,7 +152,7 @@ whose case \(\eps=1\) corresponds to the common normalization
 \(H_0(p)+\eps R(\bar\rho,p)\) no longer depends on the unknown density and is
 therefore a separable MFG subproblem.
 
-\section{Extended-MFGAN}
+\section{Fixed-Point Reduction}
 
 Let \(\bar\rho\) denote the density frozen from the previous outer step.  Define
 \[
@@ -159,7 +163,7 @@ The outer fixed-point map \(\mathcal{T}\) sends \(\bar\rho\) to the density
 \(H^{\bar\rho}\) and interaction \(f_0\).
 
 \begin{algorithm}[t]
-\caption{Extended-MFGAN}
+\caption{Fixed-point wrapper for GAN-compatible MFG solvers}
 \label{alg:neurips}
 \begin{algorithmic}[1]
 \Require decomposition \(H=H_0-f_0+\eps R\), initial density \(\rho_0\),
@@ -228,7 +232,7 @@ outer map \(\mathcal{T}\) is a contraction:
   \leq
   \kappa\norm{\bar\rho_1-\bar\rho_2}_{L^2((0,T)\times\Omega)} .
 \]
-Consequently, the exact Extended-MFGAN outer iteration satisfies
+Consequently, the exact outer iteration satisfies
 \[
   \norm{\rho^k-\rho^\star}_{L^2}
   \leq
@@ -296,13 +300,14 @@ For \(\lambda=0.2\) and \(0\leq\eps\leq1\), the equation
 \(0.724\), giving a two-sided phase transition in the normalized traffic
 range.
 
-\section{Experiments: Linearized Sharpness Validation}
+\section{Linearized Sharpness Experiments}
 
 The experiments validate the sharpness predictions of the exact linearized
 outer map.  They do not train a full neural GAN pipeline; rather, they isolate
-the part of the theory responsible for the threshold and contraction rate.
-This is the quantity controlled by \Cref{thm:l2_contraction_neurips}, so the
-experiments test the theorem's rate and failure threshold directly.
+the part of the theory responsible for the threshold and contraction rate.  The
+quantities measured here are exactly the local rates controlled by
+\Cref{thm:l2_contraction_neurips}, so the experiments test the theorem's rate
+and failure threshold without adding neural-optimization noise.
 
 \begin{table}[t]
 \centering
