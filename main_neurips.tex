@@ -1,9 +1,15 @@
 \documentclass{article}
 
-% NeurIPS submission style.  Place the official neurips_2026.sty file
-% next to this source before compiling.  For anonymous submission, do not
-% pass final or preprint options.
-\usepackage{neurips_2026}
+% NeurIPS submission style. If the official neurips_2026.sty file is present,
+% this source uses it automatically. Otherwise it falls back to a simple
+% article layout so the draft still compiles on Overleaf while you prepare the
+% official author-kit files.
+\IfFileExists{neurips_2026.sty}{
+  \usepackage{neurips_2026}
+}{
+  \usepackage[margin=1in]{geometry}
+  \usepackage[numbers]{natbib}
+}
 
 \usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{graphicx}
