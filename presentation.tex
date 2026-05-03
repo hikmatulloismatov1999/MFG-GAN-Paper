@@ -520,20 +520,19 @@ Under the GAN-tractable condition $\eps L_R < \lambda$:
   \qquad
   \boxed{\;\kappa = \dfrac{\eps\, L_R}{\lambda}\;}
 \]
-Consequently $\rho^k \to \rho^*$ in the Wasserstein-2 metric at the geometric
-rate $\kappa^k$.
+\smallskip
+\textbf{Corollary.} $\rho^k \to \rho^*$ in $\W_2$ at rate $\kappa^{k/2}$
+(square-root scaling from the $L^2$-to-$\W_2$ inequality).
 \end{resultbox}
 
-\vspace{0.4cm}
-This is the \alert{first} explicit convergence rate for any deep-learning
-MFG solver in the non-separable setting.
-
 \vspace{0.3cm}
+First explicit convergence rate for a deep-learning MFG solver in the
+non-separable setting.
 
-\begin{itemize}
-  \item Both $L^2$ and $\W_2$ convergence (a strict improvement over MFDGM).
+\begin{itemize}\setlength\itemsep{1pt}
+  \item Both $L^2$ ($\kappa^k$) and $\W_2$ ($\kappa^{k/2}$) convergence.
   \item Rate is \emph{explicit}: depends only on the data $\eps, L_R, \lambda$.
-  \item In the next slide, we sketch the proof.
+  \item Next: proof sketch.
 \end{itemize}
 \end{frame}
 

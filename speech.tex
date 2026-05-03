@@ -253,9 +253,11 @@ This means: the error after iteration $k$ plus one is at most kappa times
 the error at iteration $k$. So the error decays geometrically, like kappa
 to the $k$.
 
-Because the densities are bounded, $L^2$ convergence implies Wasserstein-2
-convergence at the same rate. So we have a strict improvement over MFDGM,
-which only gets $L^p$ for $p$ less than two.
+Because the densities are bounded, $L^2$ convergence at rate kappa-to-the-k
+implies Wasserstein-2 convergence at rate kappa-to-the-k-over-two. The
+square-root scaling comes from the standard $L^1$-to-Wasserstein-2
+inequality. We still get a strict improvement over MFDGM, which only gets
+$L^p$ for $p$ less than two and provides no rate at all.
 
 This is the first \emph{explicit} convergence rate for any deep learning
 Mean Field Game solver in the non-separable setting. APAC-Net does not give
