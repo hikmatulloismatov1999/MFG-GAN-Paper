@@ -32,7 +32,7 @@
 \newcommand{\Div}{\operatorname{div}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 
-\title{A Fixed-Point Framework for GAN-Based Mean Field Game Solvers\\
+\title{A Fixed-Point Reduction for Extending GAN-Compatible Mean Field Game Solvers\\
 with Weakly Non-Separable Hamiltonians}
 
 \author{Anonymous Authors}
@@ -46,19 +46,19 @@ GAN-based solvers for mean field games (MFGs) provide a distributional approach
 to learning population equilibria, but existing formulations largely rely on
 separable Hamiltonians.  This restriction excludes models in which the density
 interacts directly with momentum or control variables, including traffic-flow and
-congestion-type MFGs.  We propose a fixed-point framework that extends
-GAN-based MFG solvers to weakly non-separable Hamiltonians of the form
+congestion-type MFGs.  We propose an outer fixed-point reduction that extends
+GAN-compatible MFG solvers to weakly non-separable Hamiltonians of the form
 \(H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p)\).  The method freezes the
 density inside the non-separable residual, so that each outer iteration reduces
-to a separable MFG subproblem that can be solved using existing GAN-based inner
+to a separable MFG subproblem that can be solved using existing adversarial inner
 solvers.  Under Lasry--Lions monotonicity, strong convexity of the base
 Hamiltonian, and boundedness assumptions on the density and momentum variables, we prove
-that the exact outer map is an \(L^2\) contraction with rate proportional to
-\(\eps\).  This yields convergence of the proposed outer scheme and identifies
-an explicit weak-coupling threshold.  We further show that the threshold is
-sharp for a linearized ergodic model on the torus.  Numerical experiments
-validate the predicted phase transition and support the proposed extension
-beyond the separable setting.
+that the exact outer map is an \(L^2\) contraction under an explicit
+weak-coupling condition.  This yields convergence of the proposed outer scheme;
+in the density-only subcase, the rate reduces to \(\eps L_R/\lambda\), and this
+threshold is sharp for a linearized ergodic model on the torus.  Numerical
+experiments validate the predicted outer-map phase transitions beyond the
+separable setting.
 \end{abstract}
 
 \section{Introduction}
@@ -203,9 +203,11 @@ controlled by the usual perturbed fixed-point bound.  If
 \(\norm{\rho_N^{k+1}-\mathcal{T}(\rho_N^k)}_{L^2}\leq\delta_N\), then
 \[
   \norm{\rho_N^k-\rho^\star}_{L^2}
-  \leq \kappa^k\norm{\rho^0-\rho^\star}_{L^2}
-  +\frac{\delta_N}{1-\kappa}.
+  \leq \kappa_\eps^k\norm{\rho^0-\rho^\star}_{L^2}
+  +\frac{\delta_N}{1-\kappa_\eps}.
 \]
+Here \(\kappa_\eps\) denotes the exact outer-map contraction factor defined in
+\Cref{thm:l2_contraction_neurips}.
 Thus the outer theory converts inner-solver accuracy into an explicit bias
 floor.  The proof is in the appendix.
 
@@ -231,8 +233,13 @@ The following hold for all frozen densities considered by the iteration.
 \item Momentum is bounded: \(\norm{\nabla\varphi_{\bar\rho}}_{L^\infty}\leq u_{\max}\).
 \item On \(|p|\leq u_{\max}\), \(R\) is \(L_R\)-Lipschitz in \(\rho\), is
 smooth in \(p\), and satisfies
-\(|\nabla_p R|+|\nabla^2_{pp}R|\leq L_{R,p}\).  The \(p\)-variation is
-dominated by strong convexity:
+\(|\nabla_p R|+|\nabla^2_{pp}R|\leq L_{R,p}\).  In addition,
+\(\nabla_pR\) is \(L_{p\rho}\)-Lipschitz in the frozen density:
+\[
+  |\nabla_pR(x,\rho_1,p)-\nabla_pR(x,\rho_2,p)|
+  \leq L_{p\rho}|\rho_1-\rho_2|.
+\]
+The \(p\)-variation is dominated by strong convexity:
 \[
   3\eps L_{R,p}\rho_{\max}<c_0\rho_{\min},
 \]
@@ -249,23 +256,34 @@ density-only residual \(R(\rho,p)=L_R\rho\) has \(L_{R,p}=0\), so the
 momentum-domination condition is automatic and the threshold reduces to
 \(\eps L_R<\lambda\).  The bilinear traffic residual \(R(\rho,p)=\rho p\)
 satisfies the assumptions on bounded density--momentum sets when
-\(3\eps\rho_{\max}<c_0\rho_{\min}\); our traffic experiment studies the
-corresponding linearized rate around the uniform no-drift equilibrium.
+\(3\eps\rho_{\max}<c_0\rho_{\min}\), with \(L_{p\rho}=1\); our traffic
+experiment studies the corresponding linearized rate around the uniform
+no-drift equilibrium.
 
 \begin{theorem}[Outer contraction]
 \label{thm:l2_contraction_neurips}
-Under \Cref{ass:neurips}, if \(\kappa=\eps L_R/\lambda<1\), then the exact
+Under \Cref{ass:neurips}, define
+\[
+  \alpha_\eps=c_0\rho_{\min}-3\eps L_{R,p}\rho_{\max}>0,\qquad
+  B_\eps=\frac{\eps^2L_{p\rho}^2\rho_{\max}^2}{4\alpha_\eps},
+\]
+and
+\[
+  \kappa_\eps=
+  \frac{\eps L_R+\sqrt{\eps^2L_R^2+4\lambda B_\eps}}{2\lambda}.
+\]
+If \(\kappa_\eps<1\), then the exact
 outer map \(\mathcal{T}\) is a contraction:
 \[
   \norm{\mathcal{T}(\bar\rho_1)-\mathcal{T}(\bar\rho_2)}_{L^2((0,T)\times\Omega)}
   \leq
-  \kappa\norm{\bar\rho_1-\bar\rho_2}_{L^2((0,T)\times\Omega)} .
+  \kappa_\eps\norm{\bar\rho_1-\bar\rho_2}_{L^2((0,T)\times\Omega)} .
 \]
 Consequently, the exact outer iteration satisfies
 \[
   \norm{\rho^k-\rho^\star}_{L^2}
   \leq
-  \kappa^k\norm{\rho^0-\rho^\star}_{L^2}.
+  \kappa_\eps^k\norm{\rho^0-\rho^\star}_{L^2}.
 \]
 \end{theorem}
 
@@ -279,13 +297,12 @@ for \(\frac{d}{dt}\int\delta\varphi\,\delta\rho\) gives
   \lambda\norm{\delta\rho}_{L^2}^2
   \leq
   \eps L_R\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}
-  + \mathcal{E}_p .
+  + B_\eps\norm{\delta\bar\rho}_{L^2}^2 .
 \]
-The term \(\mathcal{E}_p\) contains the \(p\)-variation of the residual.  Strong
-convexity of \(H_0\), the non-vacuum bound, and the final condition in
-\Cref{ass:neurips} imply \(\mathcal{E}_p\leq0\).  Dividing by
-\(\norm{\delta\rho}_{L^2}\) yields the contraction.  Banach's fixed-point
-theorem gives the stated convergence to the unique fixed point.
+Solving this quadratic inequality in
+\(\norm{\delta\rho}_{L^2}/\norm{\delta\bar\rho}_{L^2}\) yields
+\(\kappa_\eps\).  Banach's fixed-point theorem gives the stated convergence to
+the unique fixed point.
 \end{proof}
 
 \begin{corollary}[Wasserstein convergence]
@@ -293,7 +310,7 @@ If \(\Omega\) is bounded and the densities are uniformly bounded, then
 \[
   \W_2(\rho^k,\rho^\star)
   \leq
-  C_\Omega \kappa^{k/2}\norm{\rho^0-\rho^\star}_{L^2}^{1/2}.
+  C_\Omega \kappa_\eps^{k/2}\norm{\rho^0-\rho^\star}_{L^2}^{1/2}.
 \]
 The estimate follows from the standard bound
 \(\W_2^2(\rho,\mu)\leq C_\Omega\norm{\rho-\mu}_{L^1}\) on bounded domains and
@@ -303,8 +320,10 @@ The estimate follows from the standard bound
 
 \section{Sharpness in Linearized Ergodic MFGs}
 
-The condition \(\eps L_R<\lambda\) is sharp for the linearized outer map.  On
-\(\Omega=\T^d\), consider the ergodic density-only family
+The clean condition \(\eps L_R<\lambda\) is sharp in the density-only subcase,
+where \(L_{p\rho}=0\) and the general rate reduces to
+\(\kappa_\eps=\eps L_R/\lambda\).  On \(\Omega=\T^d\), consider the ergodic
+density-only family
 \[
   H(p,\rho,\bar\rho)=\frac12 |p|^2-\lambda\rho+\eps L_R\bar\rho .
 \]
@@ -316,7 +335,7 @@ Linearizing the frozen-density map around this solution gives
   \delta\rho=\frac{\eps L_R}{\lambda}\delta\bar\rho .
 \]
 Thus the local operator norm is exactly \(\eps L_R/\lambda\), so the threshold
-cannot be improved for this family.
+cannot be improved for this subfamily.
 
 For the traffic family in \Cref{eq:traffic_family}, the no-drift equilibrium
 satisfies \(p^\star=1-\eps\).  The full model used in the experiment is the
@@ -448,7 +467,7 @@ Computing \(\frac{d}{dt}\int_\Omega \delta\varphi\,\delta\rho\,dx\), using the
 HJB and FP equations, and integrating by parts gives
 \[
 \frac{d}{dt}\int_\Omega \delta\varphi\,\delta\rho\,dx
-= A(t)-\int_\Omega (f_0(x,\rho_1)-f_0(x,\rho_2))\delta\rho\,dx,
+= A(t)-\int_\Omega (f_0(x,\rho_1)-f_0(x,\rho_2))\delta\rho\,dx .
 \]
 The boundary term vanishes after integration over \([0,T]\), because
 \(\delta\rho(0,\cdot)=0\) and \(\delta\varphi(T,\cdot)=0\).  Strong
@@ -463,7 +482,8 @@ Under \Cref{ass:neurips}, the quantity \(A(t)\) in
 \[
   A(t)\leq
   \eps L_R\norm{\delta\bar\rho(t)}_{L^2(\Omega)}
-       \norm{\delta\rho(t)}_{L^2(\Omega)} .
+       \norm{\delta\rho(t)}_{L^2(\Omega)}
+  +B_\eps\norm{\delta\bar\rho(t)}_{L^2(\Omega)}^2 .
 \]
 \end{lemma}
 
@@ -498,6 +518,17 @@ For the residual part, add and subtract \(R(x,\bar\rho_1,p_2)\) and
 \leq L_R\norm{\delta\bar\rho(t)}_{L^2(\Omega)}
        \norm{\delta\rho(t)}_{L^2(\Omega)} .
 \]
+There is also a frozen-density contribution in the velocity field,
+\(\nabla_pR(x,\bar\rho_1,p)-\nabla_pR(x,\bar\rho_2,p)\).  The
+\(L_{p\rho}\)-Lipschitz assumption gives
+\[
+  \eps\left|\int_\Omega
+  \rho_2\,\delta p\cdot
+  [\nabla_pR(x,\bar\rho_1,p_2)-\nabla_pR(x,\bar\rho_2,p_2)]\,dx\right|
+  \leq
+  \eps L_{p\rho}\rho_{\max}
+  \norm{\delta p}_{L^2}\norm{\delta\bar\rho}_{L^2}.
+\]
 The remaining residual terms depend only on the momentum difference.  Taylor's
 formula and \(|\nabla_pR|+|\nabla_{pp}^2R|\leq L_{R,p}\), together with
 \(\rho_i\leq\rho_{\max}\), yield the conservative bound
@@ -505,19 +536,31 @@ formula and \(|\nabla_pR|+|\nabla_{pp}^2R|\leq L_{R,p}\), together with
 |A_{R,p}(t)|\leq 3L_{R,p}\rho_{\max}
 \int_\Omega |\delta p|^2\,dx .
 \]
-The domination condition \(3\eps L_{R,p}\rho_{\max}<c_0\rho_{\min}\) absorbs
-\(\eps A_{R,p}\) into the negative base contribution, leaving only the
-density-variation term.
+Combining this with the negative base contribution gives
+\[
+  -\alpha_\eps\norm{\delta p}_{L^2}^2
+  +\eps L_{p\rho}\rho_{\max}
+  \norm{\delta p}_{L^2}\norm{\delta\bar\rho}_{L^2}.
+\]
+Maximizing the right-hand side over \(\norm{\delta p}_{L^2}\) gives
+\[
+  B_\eps\norm{\delta\bar\rho}_{L^2}^2,\qquad
+  B_\eps=\frac{\eps^2L_{p\rho}^2\rho_{\max}^2}{4\alpha_\eps}.
+\]
+Together with the density-variation term this proves the estimate.
 \end{proof}
 
 \begin{proof}[Proof of \Cref{thm:l2_contraction_neurips}]
 \Cref{lem:ll_identity,lem:frozen_estimate} give
 \[
 \lambda\norm{\delta\rho}_{L^2}^2
-\leq \eps L_R\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}.
+\leq \eps L_R\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}
++B_\eps\norm{\delta\bar\rho}_{L^2}^2 .
 \]
-If \(\delta\rho\neq0\), division by \(\norm{\delta\rho}_{L^2}\) gives the
-contraction estimate.  The case \(\delta\rho=0\) is trivial.  Banach's
+If \(\delta\bar\rho\neq0\), divide by
+\(\norm{\delta\bar\rho}_{L^2}^2\) and solve the resulting quadratic inequality
+for \(\norm{\delta\rho}_{L^2}/\norm{\delta\bar\rho}_{L^2}\), obtaining
+\(\kappa_\eps\).  The case \(\delta\bar\rho=0\) is trivial.  Banach's
 fixed-point theorem gives existence and uniqueness of the outer fixed point and
 the geometric convergence bound.
 \end{proof}
@@ -529,12 +572,12 @@ If the inner solver returns \(\rho_N^{k+1}\) with
 \[
   \norm{\rho_N^k-\rho^\star}_{L^2}
   \leq
-  \kappa^k\norm{\rho^0-\rho^\star}_{L^2}
-  +\frac{\delta_N}{1-\kappa}.
+  \kappa_\eps^k\norm{\rho^0-\rho^\star}_{L^2}
+  +\frac{\delta_N}{1-\kappa_\eps}.
 \]
 This follows by iterating
 \(\norm{\rho_N^{k+1}-\rho^\star}_{L^2}\leq
-\delta_N+\kappa\norm{\rho_N^k-\rho^\star}_{L^2}\).
+\delta_N+\kappa_\eps\norm{\rho_N^k-\rho^\star}_{L^2}\).
 
 \section{Reproducibility Details}
 

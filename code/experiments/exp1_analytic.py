@@ -1,7 +1,7 @@
 """Experiment 1: Separable limit (eps = 0).
 
-Validates Corollary 5.2: when eps = 0, Extended-MFGAN reduces to a single
-inner solve (one outer iteration suffices) because H^k = H_0 is independent
+Validates the separable-limit sanity check: when eps = 0, the outer wrapper
+reduces to a single inner solve because H^k = H_0 is independent
 of rho_bar.
 
 We use the same linearised setup as Experiments 2-3 (ergodic MFG on the
@@ -72,7 +72,7 @@ def run():
     eps0_err1 = err_curves[0.0][1]
     if eps0_err1 < 1e-12:
         print(f"\n[OK] eps=0 collapses to {eps0_err1:.2e} in ONE outer iteration.")
-        print("     Extended-MFGAN reduces to APAC-Net  (Corollary 5.2 verified).")
+        print("     The outer wrapper reduces to one separable inner solve.")
     else:
         print(f"\n[FAIL] eps=0 should give zero in 1 iter, got {eps0_err1:.2e}")
 
@@ -88,7 +88,7 @@ def run():
                     label=rf"$\varepsilon={eps}$ ($\kappa={eps:.1f}$)")
     ax.set_xlabel("outer iteration $k$")
     ax.set_ylabel(r"$\|\rho^k - \rho^*\|_{L^2}$")
-    ax.set_title("Separable limit: Extended-MFGAN converges in one step at $\\varepsilon=0$")
+    ax.set_title("Separable-limit outer-map convergence at $\\varepsilon=0$")
     ax.legend(fontsize=10)
     ax.grid(True, which="both", alpha=0.3)
     ax.set_ylim(1e-16, 1)
