@@ -1,25 +1,25 @@
-Existing deep learning solvers for Mean Field Games fall into two families.
-GAN-based methods learn population densities distributionally and come with
-Wasserstein convergence guarantees, but are restricted to Hamiltonians with
-separable structure. Physics-informed methods handle non-separable Hamiltonians
-but provide only weak pointwise approximations with no explicit convergence rate.
-We introduce the class of \emph{weakly non-separable Hamiltonians}, where the
-coupling between density and momentum is measured by a single parameter,
-and propose Extended-MFGAN, a fixed-point GAN iteration that handles this class
-without abandoning the distributional learning of GAN-based solvers.
-Our main result is an $L^2$ contraction theorem with explicit geometric rate
-determined by the ratio of coupling strength to Lasry-Lions monotonicity,
-which yields Wasserstein-2 convergence with the same exponential rate up to
-the standard $L^2$-to-$\mathcal{W}_2$ square-root scaling.
-This is, to our knowledge, the first explicit convergence rate for a
-deep learning MFG solver in the non-separable setting.
-We further prove the rate is sharp on a parameterised bilinear traffic-flow
-family, give a linearised counterexample showing the GAN-tractable condition
-is necessary, and validate the rate numerically across three Mean Field
-Games, recovering the predicted phase transitions to four-digit accuracy
-in the linearised regime.
+GAN-based solvers for mean field games (MFGs) provide a distributional approach
+to learning population equilibria, but existing formulations largely rely on
+separable Hamiltonians. This restriction excludes models in which density
+interacts directly with momentum or control variables, including traffic-flow
+and congestion-type MFGs. We propose an outer fixed-point reduction that
+extends GAN-compatible MFG solvers to weakly non-separable Hamiltonians of the
+form
+\[
+  H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\varepsilon R(x,\rho,p).
+\]
+The method freezes the density inside the non-separable residual, so that each
+outer iteration reduces to a separable MFG subproblem that can be solved using
+existing adversarial inner solvers. Under Lasry--Lions monotonicity, strong
+convexity of the base Hamiltonian, and boundedness assumptions on the density
+and momentum variables, we prove that the exact outer map is an $L^2$
+contraction under an explicit weak-coupling condition. This yields convergence
+of the proposed outer scheme; in the density-only subcase, the rate reduces to
+$\varepsilon L_R/\lambda$, and this threshold is sharp for a linearized
+ergodic model on the torus. Numerical experiments validate the predicted
+outer-map phase transitions beyond the separable setting.
 
 \smallskip
 \noindent\textit{Keywords:} Mean Field Games, Generative Adversarial Networks,
-Non-Separable Hamiltonians, Wasserstein Convergence, Lasry-Lions Theory,
+Weakly Non-Separable Hamiltonians, Fixed-Point Methods, Lasry--Lions Theory,
 Traffic Flow.

@@ -4,9 +4,10 @@
 \subsection{Detailed Expansion: Coupling Terms in Lemma~\ref{lem:stability}}
 \label{app:step5}
 
-We provide the complete expansion of term (ii) from \eqref{eq:coupling_split}
-and show that the non-vacuum condition (\Cref{ass:bound}) makes the
-absorption rigorous.
+We provide the expansion of term (ii) from \eqref{eq:coupling_split} and show
+how the non-vacuum condition (\Cref{ass:bound}) and the
+\(L_{p\rho}\)-control of \(\nabla_pR\) lead to the conservative rate
+\(\kappa_\eps\) used in \Cref{thm:main}.
 
 With $R^i(x,p) \coloneqq R(x,\bar\rho_i(x,t),p)$, the $p$-variation contribution is:
 \begin{align*}
@@ -21,12 +22,14 @@ By the mean value theorem and \Cref{ass:lip}, $|R^1(p_1) - R^1(p_2)| \leq L_{R,p
 For the current part, write $\rho_1\nabla_pR^1(p_1) - \rho_2\nabla_pR^2(p_2) =
 \rho_1[\nabla_pR^1(p_1)-\nabla_pR^1(p_2)] + \rho_1[\nabla_pR^1(p_2)-\nabla_pR^2(p_2)]
 + \delta\rho\cdot\nabla_pR^2(p_2)$.
-Using $|\nabla_p^2 R| \leq L_{R,p}$, $|\nabla_pR^1(p_2)-\nabla_pR^2(p_2)| \leq L_R|\delta\bar\rho|$,
+Using $|\nabla_p^2 R| \leq L_{R,p}$,
+$|\nabla_pR^1(p_2)-\nabla_pR^2(p_2)| \leq L_{p\rho}|\delta\bar\rho|$,
 and \Cref{ass:bound} ($\rho_i \leq \rho_{\max}$):
 \begin{equation}\label{eq:p_var_bound}
   |\text{(ii)}|
   \leq 3\,\eps\,L_{R,p}\,\rho_{\max}\int_\Omega |\delta p|^2\,dx
-  + \eps\,L_R\,\norm{\delta\bar\rho}_{L^2}\norm{\delta\rho}_{L^2}.
+  + \eps\,L_{p\rho}\rho_{\max}
+    \norm{\delta p}_{L^2}\norm{\delta\bar\rho}_{L^2}.
 \end{equation}
 
 \noindent\textbf{Why the absorption is rigorous.}
@@ -36,15 +39,24 @@ The non-vacuum condition $\rho_1+\rho_2 \geq 2\rho_{\min}$ then yields
 \[
   A_0+C_0 \;\leq\; -c_0\,\rho_{\min}\int_\Omega |\delta p|^2\,dx.
 \]
-Under the GAN-tractable condition $3\,\eps\,L_{R,p}\,\rho_{\max} < c_0\,\rho_{\min}$
-(a strengthening of \eqref{eq:gan_tractable} by a factor of 3 that disappears
-in sharper estimates), term (ii) is fully absorbed:
+Set
+\[
+  \alpha_\eps=c_0\rho_{\min}-3\eps L_{R,p}\rho_{\max}>0.
+\]
+Then the momentum part is bounded by
 \[
   A_0+C_0+\eps(A_R+C_R)_{\text{(ii)}}
-  \leq -(c_0\rho_{\min} - 3\eps L_{R,p}\rho_{\max})\int_\Omega|\delta p|^2\,dx \leq 0.
+  \leq -\alpha_\eps\norm{\delta p}_{L^2}^2
+  + \eps L_{p\rho}\rho_{\max}
+    \norm{\delta p}_{L^2}\norm{\delta\bar\rho}_{L^2}.
 \]
-The remaining $L_R$-term in \eqref{eq:p_var_bound} combines with term (i)
-of \eqref{eq:rho_bound} to give \eqref{eq:final_stab}.
+Maximizing the right-hand side over $\norm{\delta p}_{L^2}$ gives
+\[
+  B_\eps\norm{\delta\bar\rho}_{L^2}^2,\qquad
+  B_\eps=\frac{\eps^2L_{p\rho}^2\rho_{\max}^2}{4\alpha_\eps}.
+\]
+Combining this term with term (i) of \eqref{eq:rho_bound} gives the stability
+bound \eqref{eq:stability}.
 
 \subsection{Explicit Verification for the Bilinear Case}
 \label{app:bilinear}
@@ -125,19 +137,11 @@ $-(c_0/4)J \leq 0$, then dividing by $\norm{\delta\rho}_{L^2}$:
   \;+\; \frac{\eps^2\rho_{\max}}{c_0}\,
         \frac{\norm{\delta\bar\rho}_{L^2}^2}{\norm{\delta\rho}_{L^2}}.
 \]
-The leading term $\eps u_{\max}/\lambda$ reproduces the convergence rate
-$\kappa = \eps u_{\max}/\lambda$ of Theorem~\ref{thm:main}.
-The second-order correction $\eps^2\rho_{\max}/c_0$ is $O(\eps^2)$
-and is negligible for $\eps$ small, confirming that
-$\kappa = \eps u_{\max}/\lambda$ is the dominant rate.
-
-For the exact contraction (without higher-order correction), apply
-the GAN-tractable condition of Corollary~\ref{cor:bilinear}:
-$\eps\,\rho_{\mathrm{jam}}^2 < \rho_{\min}$ implies
-$\eps^2\rho_{\max}/c_0 \ll \lambda\,\kappa$,
-so the contraction $\norm{\delta\rho}_{L^2} \leq \kappa\,\norm{\delta\bar\rho}_{L^2}$
-holds with $\kappa = \eps u_{\max}/\lambda$.
-$L_R = u_{\max}$ confirms \eqref{eq:final_stab}. $\hfill\square$
+The leading term $\eps u_{\max}/\lambda$ is the first-order contribution to
+the local rate.  The second term is exactly the frozen-velocity correction that
+is represented by \(B_\eps\) in the general theorem.  In the density-only case
+this correction vanishes, recovering the clean rate
+\(\eps L_R/\lambda\). $\hfill\square$
 
 \subsection{Proof of Proposition~\ref{prop:inexact}}
 
@@ -146,9 +150,10 @@ By triangle inequality and Theorem~\ref{thm:main}:
   \norm{\rho^{k+1}_N - \rho^*}_{L^2}
   &\leq \norm{\rho^{k+1}_N - \rho^{k+1}}_{L^2}
    + \norm{\rho^{k+1} - \rho^*}_{L^2}
-  \leq \delta_N + \kappa\,\norm{\rho^k_N - \rho^*}_{L^2}.
+  \leq \delta_N + \kappa_\eps\,\norm{\rho^k_N - \rho^*}_{L^2}.
 \end{align*}
-Iterating and summing $\sum_{j=0}^{k-1}\kappa^j \leq \frac{1}{1-\kappa}$
+Iterating and summing
+$\sum_{j=0}^{k-1}\kappa_\eps^j \leq \frac{1}{1-\kappa_\eps}$
 yields the result. $\hfill\square$
 
 \subsection{On the Equivalence of $L^2$ and $\mathcal{W}_2$ Convergence}
@@ -162,5 +167,6 @@ $\norm{\rho_i}_{L^\infty} \leq \rho_{\max}$:
   \;\leq\; \mathrm{diam}(\Omega)\cdot|\Omega|^{1/2}\cdot\norm{\rho_1-\rho_2}_{L^2}.
 \]
 See \citet{villani2009optimal}, Theorem~7.12.
-Hence $L^2$ convergence at rate $\kappa^k$ implies $\mathcal{W}_2$ convergence
-at the same rate (up to domain-dependent constants). $\hfill\square$
+Hence $L^2$ convergence at rate $\kappa_\eps^k$ implies $\mathcal{W}_2$
+convergence at rate $\kappa_\eps^{k/2}$ through this elementary estimate
+(up to domain-dependent constants). $\hfill\square$

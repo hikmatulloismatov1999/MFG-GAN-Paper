@@ -21,9 +21,9 @@ $R(x,\rho,p)$         & coupling residual \\
 $\eps \geq 0$         & coupling strength \\
 $c_0 > 0$             & strong-convexity constant of $H_0$ in $p$ \\
 $\lambda > 0$         & Lasry-Lions monotonicity constant of $f_0$ \\
-$L_R, L_{R,p} \geq 0$ & Lipschitz constants of $R$ in $\rho$ and $\nabla_p R$ \\
+$L_R, L_{R,p}, L_{p\rho} \geq 0$ & Lipschitz constants controlling $R$ and $\nabla_p R$ \\
 $\rho_{\min}, \rho_{\max}$ & lower/upper density bounds (non-vacuum condition) \\
-$\kappa = \eps L_R/\lambda$ & contraction rate of the outer iteration \\
+$\kappa_\eps$ & contraction factor of the exact outer iteration \\
 $\mathcal{T}$         & outer fixed-point map  $\bar\rho \mapsto \rho$ \\
 $\mathcal{W}_2$       & Wasserstein-2 distance \\
 \bottomrule
@@ -111,7 +111,7 @@ Method & Non-sep.\ $H$ & $\rho$ representation & Convergence metric & Rate \\
 \midrule
 APAC-Net / MFGAN & No  & Distributional & Wasserstein-1 & Implicit \\
 MFDGM            & Yes & Pointwise NN   & $L^p$, $p<2$  & None \\
-Ours (Extended-MFGAN) & Weak & Distributional & Wasserstein-2 & Explicit \\
+Ours & Weak & Compatible with distributional inner solvers & Wasserstein-2 outer map & Explicit \\
 \bottomrule
 \end{tabular}
 \caption{Comparison of deep learning solvers for MFGs.
@@ -120,5 +120,8 @@ Ours (Extended-MFGAN) & Weak & Distributional & Wasserstein-2 & Explicit \\
 \end{table}
 
 \noindent The core gap is that neither existing family simultaneously handles
-non-separable Hamiltonians and retains distributional learning with
-Wasserstein convergence guarantees. Our method occupies this gap.
+non-separable Hamiltonians and retains the distributional structure of
+adversarial MFG solvers. Our contribution addresses the weakly
+non-separable regime by proving an explicit contraction rate for the
+outer reduction; the distributional representation is inherited whenever
+the frozen separable subproblems are solved by a GAN-based inner method.

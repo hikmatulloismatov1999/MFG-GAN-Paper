@@ -29,8 +29,8 @@ the MFG system can be reformulated as a min-max saddle-point problem
 This connects MFGs structurally to Wasserstein GANs, enabling
 algorithms such as APAC-Net \citep{lin2021apac} and MFGANs
 \citep{ruthotto2020machine} that learn the equilibrium density
-\emph{distributionally} (via a generator network) and converge in the
-Wasserstein metric, a strictly stronger guarantee than pointwise approximation.
+\emph{distributionally} (via a generator network) and provide
+Wasserstein-type convergence guarantees.
 
 However, the separability assumption is not merely a technical convenience:
 it is a hard structural requirement.
@@ -55,11 +55,11 @@ MFDGM approximates $\rho$ \emph{pointwise} rather than distributionally,
 achieves only $L^p$ ($p<2$) convergence with no explicit rate,
 and loses the Wasserstein-level guarantees that make GAN methods
 statistically and geometrically meaningful.
-The state of the art thus faces a stark dichotomy:
+Current methods therefore face a practical dichotomy:
 GAN methods are powerful but restricted, while
 physics-informed methods are general but weaker.
 
-\paragraph{This paper: resolving the dichotomy.}
+\paragraph{This paper: a fixed-point reduction.}
 We show that this dichotomy is not fundamental.
 It is a consequence of treating the non-separable Hamiltonian as monolithic.
 Our key insight is elementary: \emph{if the population density $\rho$ is
@@ -71,47 +71,46 @@ updated between iterations.
 To make this precise, we introduce the class of
 \emph{weakly non-separable Hamiltonians}, where the coupling between $\rho$
 and $p$ is parameterized by a strength $\eps \geq 0$.
-We prove that, when this coupling is controlled by the Lasry-Lions monotonicity
-of the game (a condition we call the \emph{GAN-tractable regime}), the
-fixed-point iteration is a contraction in the Wasserstein-2 metric,
-with an explicit geometric convergence rate.
-This yields the first rigorous characterization of when GAN-based methods
-provide strictly stronger convergence guarantees than physics-informed
-approaches within their applicability regime, exposing a sharp
-\emph{phase transition} between the two regimes.
+We prove that, when this coupling is controlled by the Lasry--Lions
+monotonicity of the game and by the strong convexity of the base Hamiltonian,
+the exact outer fixed-point map is a contraction in $L^2$.  The resulting
+condition is explicit.  In the density-only subcase, it reduces to the clean
+rate $\varepsilon L_R/\lambda$, and this threshold is sharp.  The result should
+be read as an outer-map reduction theorem: it identifies when a weakly
+non-separable MFG can be reduced to separable, GAN-compatible subproblems.  It
+does not by itself prove convergence of stochastic adversarial training.
 
 \paragraph{Contributions.}
 \begin{enumerate}
   \item \textbf{Weakly non-separable Hamiltonians.}
     We introduce a formal interpolation between separable and non-separable
     MFGs via a coupling parameter $\eps$, and identify the GAN-tractable
-    regime $\eps L_R < \lambda$ as the first rigorous criterion separating
-    the two computational regimes.
+    regime as an explicit weak-coupling criterion for the outer fixed-point
+    reduction.  In the density-only subcase this criterion reduces to
+    $\eps L_R < \lambda$.
 
-  \item \textbf{Extended-MFGAN algorithm.}
-    We propose a fixed-point GAN iteration that decomposes the non-separable
-    MFG into a sequence of separable subproblems, each solved by an existing
-    GAN solver (e.g., APAC-Net). The algorithm reduces exactly to APAC-Net
-    when $\eps = 0$.
+  \item \textbf{Fixed-point wrapper.}
+    We formulate a fixed-point outer iteration that decomposes the
+    non-separable MFG into a sequence of separable subproblems, each compatible
+    with existing adversarial MFG solvers (e.g., APAC-Net).  When $\eps=0$,
+    the outer wrapper reduces to a single separable inner solve.
 
-  \item \textbf{Wasserstein contraction theorem.}
-    We prove via a Lasry-Lions duality argument that the outer fixed-point
-    iteration is a $\kappa$-contraction in $\mathcal{W}_2$ with explicit
-    rate $\kappa = \eps L_R/\lambda < 1$, yielding the first Wasserstein
-    convergence guarantee with an explicit rate for any deep learning MFG
-    solver in the non-separable setting.
+  \item \textbf{Outer contraction theorem.}
+    We prove via a Lasry--Lions duality argument that the exact outer
+    fixed-point iteration is an $L^2$ contraction under an explicit
+    weak-coupling condition.  For density-only residuals, the contraction rate
+    reduces to $\kappa=\eps L_R/\lambda<1$, and Wasserstein convergence follows
+    from standard $L^2$-to-transport estimates.
 
-  \item \textbf{Sharpness of the GAN-tractable condition.}
-    We prove that the rate $\kappa = \eps L_R/\lambda$ is tight in the
-    bilinear case, and that the condition $\eps L_R < \lambda$ is necessary:
-    we construct an explicit ergodic MFG for which the linearised outer
-    iteration fails to contract as soon as $\eps L_R \geq \lambda$.
+  \item \textbf{Sharpness in the density-only subcase.}
+    We prove that the clean threshold $\eps L_R < \lambda$ is necessary and
+    sharp for a linearized ergodic density-only family on the torus.
 
   \item \textbf{Numerical validation.}
-    Across three experiments (separable limit, bilinear MFG-LWR, density-only
-    sweep), the empirical contraction rate matches the theoretical rate
-    $\kappa = \eps L_R/\lambda$ to four digits, including a non-trivial
-    two-sided phase transition predicted for the bilinear MFG-LWR.
+    Across three deterministic linearized experiments (separable limit,
+    bilinear MFG-LWR, density-only sweep), the empirical outer-map contraction
+    rate matches the predicted linearized rate, including the two-threshold
+    behavior of the bilinear MFG-LWR family.
 \end{enumerate}
 
 \paragraph{Paper organization.}
@@ -121,7 +120,7 @@ formalizes the gap between them.
 literature.
 \Cref{sec:weak} introduces weakly non-separable Hamiltonians and the
 GAN-tractable regime.
-\Cref{sec:algorithm} presents the Extended-MFGAN algorithm.
+\Cref{sec:algorithm} presents the fixed-point outer algorithm.
 \Cref{sec:convergence} develops the convergence theory.
 \Cref{sec:experiments} presents numerical results.
 \Cref{sec:conclusion} concludes with directions for future work.

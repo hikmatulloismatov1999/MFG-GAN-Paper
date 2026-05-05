@@ -1,4 +1,4 @@
-\section{The Extended-MFGAN Algorithm}
+\section{The Fixed-Point Outer Algorithm}
 \label{sec:algorithm}
 
 \subsection{Key Idea: Freezing the Density}
@@ -28,25 +28,27 @@ Given frozen density $\rho^k$, the MFG subproblem at iteration $k$ is:
     + \E[f_0(\cdot,\rho)]
   \Bigr\},
 \end{equation}
-where $H^k$ is defined in \eqref{eq:Hk}. This is exactly the APAC-Net
-saddle-point problem \eqref{eq:saddle}, with $H_0$ replaced by $H^k$.
-Any GAN-based MFG solver can be used as the inner subroutine.
+where $H^k$ is defined in \eqref{eq:Hk}. This is the same separable
+saddle-point structure as \eqref{eq:saddle}, with $H_0$ replaced by
+$H^k$. Thus, at the level of the mathematical subproblem, any solver
+designed for separable adversarial MFG formulations can be used as the
+inner subroutine.
 
 \subsection{Algorithm}
 
 \begin{algorithm}[H]
-\caption{Extended-MFGAN}
+\caption{Fixed-point reduction with a GAN-compatible inner solver}
 \label{alg:main}
 \begin{algorithmic}[1]
 \Require Hamiltonian $H = H_0 - f_0 + \eps R$, diffusion $\nu \geq 0$,
          terminal cost $g$, initial density $\rho_0$
-\Require GAN solver (e.g., APAC-Net), outer iterations $K$,
-         inner GAN iterations $N$
+\Require separable inner solver (e.g., APAC-Net), outer iterations $K$,
+         inner iterations $N$
 \State Initialize: $\rho^0 \leftarrow \rho_0$
 \For{$k = 0, 1, \ldots, K-1$}
   \State Compute effective Hamiltonian:
     $H^k(x,p) = H_0(x,p) + \eps\, R(x, \rho^k(x,\cdot), p)$
-  \State Run inner GAN solver for $N$ iterations on the separable MFG
+  \State Run the inner solver for $N$ iterations on the separable MFG
     with Hamiltonian $H^k$ and interaction $f_0$:
     \[
       (\rho^{k+1}, \varphi^{k+1}) \leftarrow \textsc{APAC-Net}(H^k, f_0, g, \rho_0, N)
@@ -59,8 +61,8 @@ Any GAN-based MFG solver can be used as the inner subroutine.
 \subsection{Special Cases and Connections}
 
 \paragraph{Separable limit.}
-When $\eps = 0$, we have $H^k = H_0$ for all $k$, so the outer loop
-converges in a single step and Extended-MFGAN reduces exactly to APAC-Net.
+When $\eps = 0$, we have $H^k = H_0$ for all $k$, so the outer map is
+constant and the wrapper reduces to one separable inner solve.
 
 \paragraph{Bilinear coupling.}
 When $R(x,\rho,p) = \rho\cdot p$ (as in the MFG-LWR model), the frozen
@@ -72,17 +74,20 @@ on the bilinear coupling.
 \paragraph{Connection to policy iteration.}
 The policy iteration algorithm of \citet{lavigne2023policy} for non-separable
 MFGs also iterates over a sequence of decoupled linear PDEs.
-Extended-MFGAN is the distributional, GAN-based analogue: it replaces
-finite-difference PDE solvers with neural GAN solvers, inheriting
-scalability to high dimensions.
+The present reduction can be viewed as the distributional analogue when
+the frozen subproblems are solved by a generator-based adversarial method.
+In that case it replaces finite-difference PDE solves with neural inner
+solves while keeping the same outer Picard structure.
 
 \subsection{Computational Cost}
 
-The total cost of Extended-MFGAN is $K$ times the cost of a single APAC-Net run.
-By \Cref{thm:main}, the outer iteration converges geometrically with rate
-$\kappa = \eps L_R / \lambda$. To reach tolerance $\delta$, at most
+The total cost is $K$ times the cost of one frozen separable inner solve.
+By \Cref{thm:main}, the exact outer iteration converges geometrically with
+factor $\kappa_\eps$. To reach tolerance $\delta$, at most
 \[
-  K = \left\lceil \frac{\log(1/\delta)}{\log(1/\kappa)} \right\rceil
+  K = \left\lceil \frac{\log(1/\delta)}{\log(1/\kappa_\eps)} \right\rceil
 \]
-outer iterations are needed. In the GAN-tractable regime $\kappa < 1$,
-this is a small constant overhead over a single APAC-Net solve.
+outer iterations are needed, up to the initial error constant. In the
+GAN-tractable regime $\kappa_\eps < 1$, this is a controlled multiplicative
+overhead over a single separable solve. In the density-only subcase,
+$\kappa_\eps$ reduces to the simpler expression $\eps L_R/\lambda$.

@@ -19,7 +19,7 @@ training objective \citep{arjovsky2017wasserstein,goodfellow2014generative}.
 The connection between the saddle-point formulation of separable MFGs
 and Wasserstein GANs was made precise by \citet{cao2021connecting}.
 Both APAC-Net and \citet{ruthotto2020machine} require separability of $H$,
-which is the obstruction we remove.
+which is the obstruction addressed by the outer reduction proposed here.
 
 \paragraph{Physics-informed deep MFG solvers.}
 \citet{assouline2023deep} (MFDGM) extend the deep-Galerkin method
@@ -40,18 +40,20 @@ extend the analysis to a continuous-time learning dynamic.
 \citet{lavigne2023policy} propose a policy iteration scheme for
 non-separable MFGs that decouples the system into a sequence of linear
 PDEs, conceptually parallel to our outer iteration.
-Extended-MFGAN inherits the same decoupling structure but replaces the
-finite-difference inner solver with a GAN-based one, retaining
-distributional learning and Wasserstein-2 guarantees.
-The contraction rate $\kappa = \varepsilon L_R/\lambda$ proved in
-\Cref{thm:main} is, to our knowledge, the first explicit convergence
-rate for any deep-learning MFG solver in the non-separable setting.
+Our fixed-point reduction inherits the same decoupling structure, and it can
+retain distributional learning whenever the separable inner problem is solved
+by a generator-based adversarial method.  The contraction factor \(\kappa_\eps\) in
+\Cref{thm:main} gives an explicit exact-outer-map rate in the weak-coupling
+regime; in the density-only subcase it reduces to
+\(\varepsilon L_R/\lambda\).
 
 \paragraph{Position of our contribution.}
 Across the deep-learning MFG literature, no existing method
 simultaneously (i) handles non-separable Hamiltonians,
 (ii) learns $\rho$ distributionally via a generator,
 and (iii) provides Wasserstein convergence with an explicit rate.
-Extended-MFGAN occupies this gap within the GAN-tractable regime
-$\varepsilon L_R < \lambda$, which we further show is sharp
-(\Cref{prop:necessity}).
+The present fixed-point reduction occupies this gap conditionally: the outer
+map has an explicit rate in the weak-coupling regime, and distributional
+learning is inherited when the separable inner solver is GAN-based.  The clean
+threshold \(\varepsilon L_R<\lambda\) is sharp for the density-only linearized
+family in \Cref{prop:necessity}.

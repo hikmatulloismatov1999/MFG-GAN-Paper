@@ -1,42 +1,47 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-We introduced weakly non-separable Hamiltonians and the Extended-MFGAN
-algorithm, which bridges the gap between GAN-based and physics-informed
-solvers for Mean Field Games. The central contribution is an $L^2$
+We introduced weakly non-separable Hamiltonians and a fixed-point reduction
+that converts them into a sequence of separable, GAN-compatible MFG
+subproblems. The central contribution is an exact outer-map $L^2$
 contraction theorem (\Cref{thm:main}) yielding $\mathcal{W}_2$ convergence
-(\Cref{cor:W2}); this is the first explicit convergence rate for a
-deep-learning MFG solver in the non-separable setting, and it identifies a
-sharp criterion (\Cref{prop:gap}) separating the regime where GAN-based
-methods provide stronger convergence guarantees from the regime where
-physics-informed methods are preferred.
+(\Cref{cor:W2}) under an explicit weak-coupling condition. In the
+density-only subcase, the contraction factor reduces to the clean rate
+$\eps L_R/\lambda$, and this threshold is sharp for the linearized ergodic
+model on the torus. For residuals that also affect the velocity field, the
+rate contains the additional constants $L_{R,p}$ and $L_{p\rho}$, which
+account for momentum variation and frozen-density dependence of
+$\nabla_pR$.
 
 \paragraph{Limitations.}
 The contraction theorem covers densities bounded away from vacuum
-($\rho \geq \rho_{\min} > 0$), and the second GAN-tractable condition
-$\eps L_{R,p}\rho_{\max} < c_0\rho_{\min}$ depends on the density contrast;
-problems with very sharp density gradients are outside the analysis.
-The numerical validation is conducted in the linearised regime around the
-uniform equilibrium, where Propositions \ref{prop:bilinear_exact} and
-\ref{prop:necessity} establish that the rate is exactly attained;
-a fully nonlinear neural-network implementation of the inner GAN solver,
-and a head-to-head benchmark against MFDGM as a complete pipeline,
-are natural next steps.
-The analysis also assumes exact inner GAN solves; the bias from finite
-inner iterations is bounded in \Cref{prop:inexact}, but a tighter
-treatment would be of interest.
+($\rho \geq \rho_{\min} > 0$), and the positivity condition
+$c_0\rho_{\min}-3\eps L_{R,p}\rho_{\max}>0$ depends on the density contrast;
+problems with vacuum regions or very sharp density gradients are outside
+the present analysis. The numerical validation is conducted in the
+linearized regime around the uniform equilibrium, where the density-only
+and traffic linearizations allow the predicted rates to be measured
+directly. These experiments test the outer fixed-point mechanism rather
+than a full stochastic adversarial training pipeline.
+The analysis also assumes exact inner solves; the bias from finite
+inner iterations is bounded in \Cref{prop:inexact}, but a tighter treatment
+of optimization and sampling error remains open.
 
 \paragraph{Future directions.}
 Several extensions are natural.
-When $\eps L_R \geq \lambda$, one can replace the inner GAN solver with
-MFDGM to form a hybrid algorithm that handles the fully non-separable regime
-at the cost of weaker convergence guarantees.
+The most important next step is a full neural implementation in which
+APAC-Net or another adversarial MFG solver is used as the inner routine,
+followed by pipeline-level comparisons with MFDGM, PINN/DGM solvers, and
+finite-difference references in low dimension.
+When the weak-coupling condition fails, hybrid schemes that switch from
+distributional inner solvers to residual-minimization methods such as MFDGM
+may provide a practical route to more strongly non-separable models.
 Extension to mean field control problems \citep{carmona2018probabilistic},
 where the social planner optimizes over the whole population, is also
 of interest.
-Finally, applying Extended-MFGAN to large-scale multi-agent reinforcement
-learning and to engineering systems modeled by congestion-type MFGs
-are promising practical directions.
+Finally, applying the fixed-point reduction to large-scale multi-agent
+reinforcement learning and to engineering systems modeled by
+congestion-type MFGs are promising practical directions.
 
 \paragraph{Code and data availability.}
 The full LaTeX source, the Python code for all experiments, and the

@@ -29,7 +29,7 @@ Experiment~2 uses the parameterised bilinear traffic family
 For each problem, the linearised outer map is diagonal in Fourier modes;
 its operator norm is $\kappa = \eps L_R/\lambda$ for the density-only
 case and $\kappa = \eps|1-\eps|/\lambda$ for the parameterised bilinear
-case (\Cref{prop:bilinear_exact}).
+traffic case around the no-drift equilibrium (\Cref{prop:bilinear_exact}).
 This is the prediction the experiments test.
 
 \subsection{Setup}
@@ -54,8 +54,8 @@ the outer map $K=12$ times.
 
 We first verify the separable-limit observation in \Cref{sec:algorithm}: when
 $\varepsilon = 0$ the effective Hamiltonian $H^k = H_0$ is independent
-of $\bar\rho$, so the outer fixed-point map is constant and Extended-MFGAN
-should converge in a single iteration.
+of $\bar\rho$, so the outer fixed-point map is constant and the wrapper
+reduces to one separable inner solve.
 
 For $\varepsilon \in \{0, 0.1, 0.3, 0.5\}$ we apply the linearised outer
 map to the initial perturbation $\delta\rho^0(x) = 0.2\cos(2\pi x)$
@@ -84,8 +84,8 @@ $\kappa = \varepsilon L_R/\lambda$ is recovered exactly.}
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.7\textwidth]{figures/exp1_analytic.pdf}
-\caption{Extended-MFGAN convergence on the separable limit.
-For $\varepsilon = 0$ the algorithm terminates in one step;
+\caption{Separable-limit outer-map convergence.
+For $\varepsilon = 0$ the wrapper terminates in one step;
 for $\varepsilon > 0$ the geometric decay rate matches theory.}
 \label{fig:separable}
 \end{figure}
@@ -190,12 +190,12 @@ Proposition~\ref{prop:necessity}.}
 \label{tab:phase_transition}
 \end{table}
 
-The match is exact across the full sweep: empirical and theoretical rates
+The match is exact for this linearized density-only sweep: empirical and theoretical rates
 agree to four digits, and the transition between geometric decay
 ($\varepsilon < 1$) and geometric growth ($\varepsilon > 1$) occurs precisely
 at $\varepsilon^* = 1$.
-This is direct empirical evidence for the sharpness of the GAN-tractable
-condition.
+This is direct empirical evidence for the sharpness of the density-only
+weak-coupling condition.
 
 \begin{figure}[h]
 \centering
@@ -212,12 +212,13 @@ threshold transitions sharply to geometric growth above.}
 
 \subsection{Discussion}
 
-The exact agreement between $\hat\kappa$ and the theoretical rate
-$\kappa = \varepsilon L_R/\lambda$ at all $\varepsilon$ is a consequence of
+The exact agreement between $\hat\kappa$ and the theoretical rate in the
+linearized tests is a consequence of
 two facts established in the paper.
 First, \Cref{prop:bilinear_exact} shows that the linearised outer map at the
-uniform equilibrium has operator norm exactly $\varepsilon L_R/\lambda$,
-so the upper bound in \Cref{thm:main} is attained on this family.
+uniform equilibrium has an explicitly computable operator norm, reducing to
+$\varepsilon L_R/\lambda$ in the density-only sweep and to
+$\varepsilon|1-\varepsilon|/\lambda$ for the parameterised traffic family.
 Second, \Cref{prop:necessity} shows that this rate persists through the
 iteration: $\|\rho^k - \rho^*\|_{L^2}$ scales as
 $\kappa^k \|\rho^0 - \rho^*\|_{L^2}$ for all $k$.
@@ -231,9 +232,10 @@ the parameterised bilinear traffic family with two phase transitions
 (Experiment~2) to the density-only sweep with a single sharp threshold
 (Experiment~3).
 In the linearised regime, this confirms the central
-analytical claim of the paper: the GAN-tractable condition
-$\varepsilon L_R < \lambda$ is necessary and sufficient for geometric
-convergence, with rate exactly $\kappa = \varepsilon L_R/\lambda$.
+analytical claim of the paper: in the density-only subcase, the
+weak-coupling condition $\varepsilon L_R < \lambda$ is necessary and
+sufficient for geometric convergence, with rate exactly
+$\kappa = \varepsilon L_R/\lambda$.
 Whether the rate persists at the same value in the fully nonlinear
 PDE regime, beyond a neighbourhood of the uniform equilibrium, is an
 open question.
