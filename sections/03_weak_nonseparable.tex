@@ -23,6 +23,8 @@ A weakly non-separable Hamiltonian is in the \emph{GAN-tractable regime} if
 \begin{equation}\label{eq:condition}
   \eps\, L_R < \lambda.
 \end{equation}
+This definition is used only for the density-only discussion below; the full
+condition for momentum-dependent residuals is given in \Cref{def:tractable_full}.
 \end{definition}
 
 \begin{remark}
@@ -92,7 +94,7 @@ By \Cref{ass:pmax} the admissible region is $|p|\leq u_{\max}$, on which
 $L_R = u_{\max}$ (since $|R(\rho_1,p)-R(\rho_2,p)|=|p||\rho_1-\rho_2|$
 and speeds are physically bounded).
 
-\begin{proposition}[Bilinear exactness and tight rate]
+\begin{proposition}[Bilinear exactness and local traffic rate]
 \label{prop:bilinear_exact}
 Let $R(x,\rho,p) = \rho\cdot p$, so the family
 $H_\eps(x,\rho,p) = H_0(x,p) + \eps\,\rho\, p$ with
@@ -104,10 +106,10 @@ at $\eps = 1$.  For this family:
         is the \emph{exact} (not approximated) Hamiltonian for the
         subproblem at iteration $k$; no Taylor-expansion error is
         introduced.
-  \item The convergence rate of \Cref{thm:main}, evaluated at the no-drift
-        uniform equilibrium, is \emph{sharp}: the linearised outer map
-        $\mathcal{T}$ has operator norm $\eps\,|1-\eps|/\lambda$,
-        which equals $\eps L_R(\rho^*,p^*)/\lambda$ with
+  \item At the no-drift uniform equilibrium, the linearised outer map
+        $\mathcal{T}$ has the explicit operator norm
+        $\eps\,|1-\eps|/\lambda$, which equals
+        $\eps L_R(\rho^*,p^*)/\lambda$ with
         $L_R(\rho^*,p^*) = |p^*| = |1-\eps|$ (\Cref{ass:lip,ass:pmax}).
 \end{enumerate}
 \end{proposition}
@@ -169,10 +171,10 @@ $\sigma > 0$, which is physically natural (penalizing high density)
 and yields $\lambda = \sigma$.
 The GAN-tractable condition then becomes $\eps\, u_{\max} < \sigma$,
 satisfied for sufficiently strong regularization.
-Second, for the pure traffic flow case ($f_0 = 0$), the contraction argument
-can be adapted using the strong convexity of $H_0$ alone
-(see \Cref{cor:bilinear}), recovering a contraction under
-$\eps\, \rho_{\max} < c_0 = 1$.
+Second, for the pure traffic flow case ($f_0 = 0$), the monotonicity constant
+is $\lambda=0$, so the theorem below does not apply directly.  Treating that
+case requires a separate argument that exploits the specific traffic
+structure rather than the general Lasry--Lions monotonicity mechanism.
 \end{remark}
 
 \subsection{Position Relative to Physics-Informed Methods}

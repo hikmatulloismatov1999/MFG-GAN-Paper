@@ -7,7 +7,7 @@ contraction rate proved in \Cref{prop:bilinear_exact} and
 \Cref{prop:necessity}.  Concretely, we iterate the analytically
 derived linearisation of the outer fixed-point map $\mathcal{T}$ at the
 uniform equilibrium and compare the empirical contraction with the
-theoretical rate $\kappa = \eps L_R/\lambda$.
+theoretical rates described below.
 
 \paragraph{What is \emph{not} done here.}
 We do \emph{not} train an APAC-Net inner solver, nor solve the full
@@ -15,8 +15,8 @@ nonlinear PDE pipeline of \Cref{alg:main} end-to-end.  A full
 neural-network implementation of the inner GAN solver, and a
 pipeline-level benchmark against MFDGM, are left to future work
 (\Cref{sec:conclusion}).  The present experiments are deliberately
-narrow: they target the regime in which our theorem is provably tight
-and validate the predicted rate to four-digit accuracy.
+narrow: they target settings where the linearized outer map is explicit
+and validate the predicted rates to four-digit accuracy.
 
 \paragraph{Setting.}
 All experiments use the ergodic MFG on the torus
@@ -45,8 +45,8 @@ mode the linearised map acts as
   \frac{\varepsilon\, L_R}{\lambda + \nu^2 (2\pi k)^2/\lambda}\,
   \widehat{\delta\bar\rho}_k.
 \]
-For $\nu = 0$ this reduces exactly to the rate $\kappa = \varepsilon L_R/\lambda$
-predicted by Theorem~\ref{thm:main}.
+For $\nu = 0$ this reduces exactly to the density-only rate
+$\kappa = \varepsilon L_R/\lambda$.
 We initialise with $\delta\rho^0(x) = 0.05\cos(2\pi x)$ and iterate
 the outer map $K=12$ times.
 
@@ -92,7 +92,7 @@ for $\varepsilon > 0$ the geometric decay rate matches theory.}
 
 \subsection{Bilinear traffic flow (Experiment 2)}
 
-We next validate the tightness claim of Proposition~\ref{prop:bilinear_exact}
+We next validate the local-rate calculation of Proposition~\ref{prop:bilinear_exact}
 on the MFG-LWR traffic Hamiltonian (\Cref{sec:traffic})
 $H(x,\rho,p) = \tfrac{1}{2}p^2 - (1-\rho)p$, with bilinear coupling
 $R(x,\rho,p) = \rho p$ and $\varepsilon = 1$ in the decomposition
@@ -183,9 +183,9 @@ $1.5$ & $1.500$ & $1.500$ & $4.6\times 10^{0}$   & diverging  \\
 \bottomrule
 \end{tabular}
 \caption{Phase transition: empirical vs theoretical contraction rate.
-The empirical rate $\hat\kappa$ matches the theoretical rate $\kappa = \varepsilon L_R/\lambda$
-to all reported decimal places, confirming the sharpness claim of
-Proposition~\ref{prop:bilinear_exact} and the necessity claim of
+The empirical rate $\hat\kappa$ matches the theoretical rate
+$\kappa = \varepsilon L_R/\lambda$ to all reported decimal places,
+confirming the necessity and sharpness claim of
 Proposition~\ref{prop:necessity}.}
 \label{tab:phase_transition}
 \end{table}
@@ -219,11 +219,12 @@ First, \Cref{prop:bilinear_exact} shows that the linearised outer map at the
 uniform equilibrium has an explicitly computable operator norm, reducing to
 $\varepsilon L_R/\lambda$ in the density-only sweep and to
 $\varepsilon|1-\varepsilon|/\lambda$ for the parameterised traffic family.
-Second, \Cref{prop:necessity} shows that this rate persists through the
-iteration: $\|\rho^k - \rho^*\|_{L^2}$ scales as
+Second, in the density-only family, \Cref{prop:necessity} shows that the
+rate persists through the iteration:
+$\|\rho^k - \rho^*\|_{L^2}$ scales as
 $\kappa^k \|\rho^0 - \rho^*\|_{L^2}$ for all $k$.
-The numerical experiment confirms both predictions to four-digit
-accuracy in the linearised regime.
+The numerical experiments confirm these predictions to four-digit
+accuracy in the linearised regimes tested here.
 
 Across the three experiments the empirical contraction rate matches the
 theoretical prediction to four decimal places, in regimes ranging from

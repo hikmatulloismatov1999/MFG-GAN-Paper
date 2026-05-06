@@ -44,7 +44,8 @@ yielding a Hamiltonian
   H(x,\rho,p) = \tfrac{1}{2}\norm{p}^2 - (1-\rho)\,p
 \]
 that couples density and momentum inseparably.
-GAN-based methods cannot be applied to such problems.
+The usual separable GAN formulation cannot be applied directly to such
+problems.
 
 \paragraph{The cost of going beyond separability.}
 The recent MFDGM method \citep{assouline2023deep} addresses non-separable
@@ -52,12 +53,12 @@ Hamiltonians by directly minimizing PDE residuals via physics-informed
 neural networks, removing any structural requirement on $H$.
 This is a genuine advance, but it comes at a price:
 MFDGM approximates $\rho$ \emph{pointwise} rather than distributionally,
-achieves only $L^p$ ($p<2$) convergence with no explicit rate,
-and loses the Wasserstein-level guarantees that make GAN methods
-statistically and geometrically meaningful.
+and its existing convergence theory is stated in $L^p$ ($p<2$) without an
+explicit geometric rate.
 Current methods therefore face a practical dichotomy:
-GAN methods are powerful but restricted, while
-physics-informed methods are general but weaker.
+adversarial methods have distributional structure but require separability,
+whereas residual-minimization methods are more flexible but come with
+different guarantees.
 
 \paragraph{This paper: a fixed-point reduction.}
 We show that this dichotomy is not fundamental.
@@ -65,8 +66,8 @@ It is a consequence of treating the non-separable Hamiltonian as monolithic.
 Our key insight is elementary: \emph{if the population density $\rho$ is
 temporarily frozen, any non-separable Hamiltonian becomes separable.}
 This observation turns the non-separable MFG into a sequence of separable
-subproblems, each solvable by existing GAN methods, with the density
-updated between iterations.
+subproblems, each compatible with existing adversarial MFG solvers, with the
+density updated between iterations.
 
 To make this precise, we introduce the class of
 \emph{weakly non-separable Hamiltonians}, where the coupling between $\rho$

@@ -21,7 +21,7 @@ $R(x,\rho,p)$         & coupling residual \\
 $\eps \geq 0$         & coupling strength \\
 $c_0 > 0$             & strong-convexity constant of $H_0$ in $p$ \\
 $\lambda > 0$         & Lasry-Lions monotonicity constant of $f_0$ \\
-$L_R, L_{R,p}, L_{p\rho} \geq 0$ & Lipschitz constants controlling $R$ and $\nabla_p R$ \\
+$L_R, L_{R,p}, L_{p\rho} \geq 0$ & constants controlling $R$, its $p$-derivatives, and $\nabla_p R$ \\
 $\rho_{\min}, \rho_{\max}$ & lower/upper density bounds (non-vacuum condition) \\
 $\kappa_\eps$ & contraction factor of the exact outer iteration \\
 $\mathcal{T}$         & outer fixed-point map  $\bar\rho \mapsto \rho$ \\
@@ -38,11 +38,13 @@ Let $\Omega \subset \R^d$ be a bounded domain and $T > 0$ a finite horizon.
 A Mean Field Game is described by the coupled PDE system
 \eqref{eq:HJB}--\eqref{eq:FP} with initial condition
 $\rho(0,\cdot) = \rho_0$ and terminal condition
-$\varphi(T,\cdot) = g(\cdot, \rho(T,\cdot))$.
+$\varphi(T,\cdot) = g(\cdot)$.
 The solution $(\varphi, \rho)$ represents a Nash equilibrium: no agent
 can improve their cost by unilaterally changing their control.
-Existence and uniqueness under monotonicity conditions on $f_0$ and $g$
-are established in \citet{lasry2007mean}.
+Existence and uniqueness under monotonicity conditions on the coupling
+are established in \citet{lasry2007mean}.  Density-dependent terminal costs
+can be included under an additional terminal monotonicity condition; we keep
+$g$ fixed to match the stability argument used below.
 
 \subsection{Separable Hamiltonians and GAN-Based Methods}
 
@@ -89,7 +91,7 @@ the PDE residuals directly:
     \bigl|\partial_t\varphi_\omega + \nu\Delta\varphi_\omega
     - H(x_b,\rho_\theta,\nabla\varphi_\omega)\bigr|^2
     + \frac{1}{S}\sum_{s=1}^S
-    \bigl|\varphi_\omega(T,x_s) - g(x_s,\rho_\theta(T,x_s))\bigr|^2,\\
+    \bigl|\varphi_\omega(T,x_s) - g(x_s)\bigr|^2,\\
   \mathcal{L}_{\mathrm{FP}} &= \frac{1}{B}\sum_{b=1}^B
     \bigl|\partial_t\rho_\theta - \nu\Delta\rho_\theta
     - \Div(\rho_\theta\,\nabla_p H)\bigr|^2
