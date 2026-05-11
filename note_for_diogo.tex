@@ -1,4 +1,5 @@
 \documentclass[11pt]{article}
+
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath, amssymb, amsthm, mathtools}
 \usepackage{xcolor}
@@ -8,7 +9,13 @@
 \usepackage{tcolorbox}
 \usepackage{enumitem}
 
-\hypersetup{colorlinks=true, urlcolor=blue!60!black, linkcolor=blue!60!black}
+\hypersetup{
+  colorlinks=true,
+  urlcolor=blue!60!black,
+  linkcolor=blue!60!black,
+  citecolor=blue!60!black
+}
+
 \titleformat{\section}{\large\bfseries\color{blue!50!black}}{\thesection.}{0.6em}{}
 \titleformat{\subsection}{\bfseries\color{blue!50!black}}{\thesubsection.}{0.6em}{}
 
@@ -19,259 +26,265 @@
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\eps}{\varepsilon}
 
-\title{Research Note: Extended-MFGAN\\
-       \large An outer fixed-point reduction for weakly non-separable Mean Field Games}
-\author{Hikmatullo Ismatov \\ \texttt{hikmatullo.ismatov@kaust.edu.sa}}
+\title{A Fixed-Point GAN Scheme for Weakly Non-Separable Mean Field Games}
+\author{Hikmatullo Ismatov\\
+\texttt{hikmatullo.ismatov@kaust.edu.sa}}
 \date{\today}
 
 \begin{document}
 \maketitle
 
-\noindent\emph{Dear Prof.\ Gomes,}\medskip
+\section*{Purpose of this note}
 
-\noindent
-I would like your feedback on the current state of the Extended-MFGAN
-project before I start preparing a formal submission.  This note is a
-short summary: it describes the idea, the algorithm, the main theorem,
-the experiments, and an honest list of what is still missing.  At the end
-I write a few specific questions where I would value your guidance.
+This short note summarizes the current state of my project on extending GAN-based solvers for Mean Field Games (MFGs) to weakly non-separable Hamiltonians. I describe the main idea, the proposed algorithm, the contraction theorem, the numerical validation completed so far, and the main points that still need improvement before a formal submission.
 
-The full draft, code, and slides are at
+The full draft, code, and slides are available at
 \href{https://github.com/hikmatulloismatov1999/MFG-GAN-Paper}{\texttt{github.com/hikmatulloismatov1999/MFG-GAN-Paper}}.
 
-% ----------------------------------------------------------------
-\section{The idea in one paragraph}
+\section{Main idea}
 
-Deep learning solvers for Mean Field Games (MFGs) sit in two families
-that cannot be combined.  GAN-based solvers (APAC-Net, MFGAN) parameterise
-the density distributionally and provide Wasserstein convergence, but
-require the Hamiltonian to be \emph{separable}, $H = H_0(x,p)-f_0(x,\rho)$.
-Physics-informed solvers (MFDGM, Assouline--Missaoui 2023) handle any
-Hamiltonian by minimising the PDE residual, but converge only in $L^p$ for
-$p<2$ with no explicit rate.  The observation behind this project is
-simple: if $\rho$ is held fixed inside the non-separable residual, the
-sub-problem becomes separable.  We define a class of \emph{weakly
-non-separable} Hamiltonians,
+Deep learning solvers for Mean Field Games currently fall into two broad families. GAN-based solvers, such as APAC-Net and MFGAN, parameterize the density distributionally and provide Wasserstein-type convergence results, but they typically require the Hamiltonian to be separable, for example
 \[
-  H(x,\rho,p) = H_0(x,p) - f_0(x,\rho) + \eps\, R(x,\rho,p),
+  H(x,\rho,p)=H_0(x,p)-f_0(x,\rho).
 \]
-and propose an outer fixed-point iteration that solves the original MFG
-by repeatedly applying a separable inner GAN solver.
+On the other hand, physics-informed methods such as MFDGM can handle more general non-separable Hamiltonians by minimizing the PDE residual, but their convergence guarantees are weaker and usually do not provide explicit contraction rates.
 
-% ----------------------------------------------------------------
-\section{The algorithm}
+The observation behind this project is simple. If the density variable inside the non-separable part is frozen, then the resulting subproblem becomes separable in the sense required by the inner GAN solver. This motivates an outer fixed-point iteration for Hamiltonians of the form
+\[
+  H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p),
+\]
+where $\eps>0$ measures the strength of the non-separable perturbation.
 
-The outer iteration is essentially a damped Picard scheme on the population
-density, with a GAN-based inner solve at each step.
+\section{Proposed algorithm}
+
+The method is a damped Picard-type iteration on the density. At each outer step, the density is frozen inside the residual term, and the resulting separable MFG is solved using an inner GAN-based solver.
 
 \begin{tcolorbox}[colback=blue!4, colframe=blue!50!black, arc=2pt]
-\textbf{Extended-MFGAN.}\\[3pt]
-\textbf{Require.} Hamiltonian $H = H_0 - f_0 + \eps R$, diffusion $\nu\geq 0$,
-terminal cost $g$, initial density $\rho_0$, inner GAN solver, outer
-iterations $K$.\\[3pt]
-Initialise $\rho^0 \leftarrow \rho_0$.\\
-\textbf{For} $k=0,1,\dots,K-1$:
-\begin{enumerate}[noitemsep]
-  \item Build the effective Hamiltonian
-        $H^k(x,p) := H_0(x,p) + \eps\, R\bigl(x,\rho^k(x,t),p\bigr)$.\\
-        Note: this depends only on $(x,p)$; it is \emph{separable in the
-        relevant sense}.
-  \item Run the inner GAN solver on the separable MFG with $H^k$:\\
-        \hspace*{1em}$(\varphi^{k+1},\rho^{k+1}) \leftarrow
-                       \mathrm{APAC\text{-}Net}(H^k, f_0, g, \rho_0)$.
-\end{enumerate}
-\textbf{Return.} $(\varphi^K, \rho^K)$.
-\end{tcolorbox}
-
-\noindent
-Sanity check: when $\eps=0$, the effective Hamiltonian is independent of
-$\rho^k$ and the loop terminates in one step, recovering APAC-Net exactly.
-The cost is $K$ inner solves, and once we prove the contraction rate
-$\kappa$, $K = \lceil\log(1/\delta)/\log(1/\kappa)\rceil$ suffices to
-reach accuracy $\delta$.
-
-% ----------------------------------------------------------------
-\section{The convergence theorem}
-
-\subsection{Assumptions}
-$H_0$ is $c_0$-strongly convex in $p$ (Assumption~5.1).
-$f_0$ is Lasry--Lions monotone with constant $\lambda>0$
-(Assumption~5.2).  The coupling residual $R$ is Lipschitz on the
-admissible region with constants $L_R$ (in $\rho$) and $L_{R,p}$ (in $p$),
-and $\nabla_p R$ is $L_{p\rho}$-Lipschitz in the frozen density.
-Densities are bounded, $\rho_{\min}\leq \rho \leq \rho_{\max}$,
-and value functions satisfy $\norm{\nabla\varphi}_{L^\infty}\leq u_{\max}$
-(Assumption~5.4, standard for viscosity solutions of coercive HJB).
-
-\subsection{The GAN-tractable condition}
-The Hamiltonian is \emph{GAN-tractable} if
-\[
-  \alpha_\eps := c_0\rho_{\min} - 3\,\eps\, L_{R,p}\,\rho_{\max} > 0,
-  \qquad
-  \kappa_\eps := \frac{\eps L_R + \sqrt{\eps^2 L_R^2
-                  + \lambda\,\eps^2 L_{p\rho}^2 \rho_{\max}^2/\alpha_\eps}}
-                  {2\lambda} < 1.
-\]
-For density-only $R(x,\rho)$ both $L_{R,p}$ and $L_{p\rho}$ vanish and
-the condition reduces to the clean threshold
-$\kappa = \eps L_R/\lambda < 1$.
-
-\subsection{Main theorem ($L^2$ contraction)}
-Under the assumptions above and the GAN-tractable condition, the outer
-iteration satisfies
-\[
-  \boxed{\;
-  \norm{\rho^{k+1}-\rho^*}_{L^2((0,T)\times\Omega)}
-  \;\leq\; \kappa_\eps\,\norm{\rho^k-\rho^*}_{L^2((0,T)\times\Omega)}.
-  \;}
-\]
-By the $L^2$-to-$\W_2$ inequality on bounded domains, this yields
-$\W_2(\rho^k(t,\cdot),\rho^*(t,\cdot)) \leq C\,\kappa_\eps^{k/2}$.
-To my knowledge, this is the first explicit convergence rate for a
-deep-learning MFG solver in the non-separable setting (though I would
-appreciate your check against Lavigne--Pfeiffer 2023 below).
-
-\subsection{Proof sketch}
-The proof is the Lasry--Lions duality identity applied to two MFG
-solutions $(\varphi_i,\rho_i)$ that share data but use different frozen
-densities $\bar\rho_i$ in the effective Hamiltonian.  Computing
-$\tfrac{d}{dt}\int \delta\varphi\cdot\delta\rho\,dx$, the diffusion terms
-cancel between HJB and FP, and after integration by parts and using the
-boundary conditions $\delta\rho(0)=0$, $\delta\varphi(T)=0$, the residual
-identity is
-\[
-  \int_0^T(A+C)\,dt + \int_0^T B\,dt = 0,
-\]
-with $B\leq -\lambda\norm{\delta\rho}^2$ by monotonicity, and $A+C$
-splitting into a base-Hamiltonian piece (non-positive by strong
-convexity) and a coupling piece controlled by $\eps L_R, \eps L_{R,p},
-\eps L_{p\rho}$.  Combining gives
-\[
-  \lambda\norm{\delta\rho}^2 \;\leq\; \eps L_R\,\norm{\delta\bar\rho}\,
-  \norm{\delta\rho} + B_\eps\,\norm{\delta\bar\rho}^2,
-\]
-which on division and a quadratic-formula argument yields the contraction
-with rate $\kappa_\eps$.  Banach fixed-point theorem closes the iteration.
-
-\subsection{Sharpness and necessity}
-For the parameterised bilinear family $H_\eps = \tfrac12 p^2 - p + \eps\rho p$,
-linearising at the no-drift uniform equilibrium $(\rho^*,p^*) = (1,1-\eps)$
-gives a Fourier-mode calculation in which the linearised outer map has
-operator norm \emph{exactly} $\eps|1-\eps|/\lambda = \eps L_R(\rho^*,p^*)/\lambda$.
-This proves the rate is tight.
-
-The same ergodic example shows necessity: when $\eps L_R\geq\lambda$ the
-linearised iteration does not contract.  At the threshold it stagnates;
-above it, it grows geometrically.  So in the linearised regime the
-condition $\eps L_R<\lambda$ is necessary and sufficient.
-
-% ----------------------------------------------------------------
-\section{Numerical experiments}
-
-\subsection{What is done}
-Three experiments iterate the analytically derived linearised outer map
-and compare empirical to theoretical contraction.
-
-\begin{enumerate}[noitemsep, leftmargin=*]
-  \item \textbf{Separable limit ($\eps=0$).} Error drops to machine zero
-        in one outer step.  Confirms reduction to APAC-Net.
-  \item \textbf{Bilinear MFG-LWR.}  Two-sided phase transition for
-        $\lambda=0.2$: empirical $\kappa$ matches $\eps|1-\eps|/\lambda$
-        to four digits across eleven values of $\eps$, with thresholds
-        at $\eps_\pm^*\approx 0.276,\,0.724$.
-  \item \textbf{Density-only sweep.}  Sharp transition at $\eps^*=1$,
-        empirical $\kappa = \eps$ to four digits across
-        $\eps\in[0.1,1.5]$.
-\end{enumerate}
-
-Each experiment runs in under thirty seconds using only NumPy.
-
-\subsection{What is \emph{not} done}
-The experiments iterate the analytically derived linearised map.
-They do \emph{not} train an APAC-Net inner solver, nor solve the full
-nonlinear PDE pipeline end-to-end.  A real neural-network implementation
-of the inner GAN is engineering work but not yet completed; I have flagged
-this transparently in Section~6 of the draft and in the limitations of
-Section~7.
-
-% ----------------------------------------------------------------
-\section{Honest assessment: what is still missing}
-
-I do not yet think the manuscript is journal-ready.  Specific concerns:
-
-\begin{enumerate}[noitemsep, leftmargin=*]
-  \item \textbf{No full-pipeline experiments.}  The numerics validate the
-        \emph{linearised} rate, where the theorem is provably tight.  A
-        small finite-difference reference experiment on the bilinear
-        MFG-LWR would already strengthen the case, and a full neural
-        implementation of the inner GAN solver would be ideal.
-  \item \textbf{Factor 3 in the second GAN-tractable condition.}  This
-        comes from a three-way split of the current term in Step~5 of
-        the proof.  A finer Young's argument may reduce it toward 1; I
-        kept the factor 3 to make the absorption transparent.
-  \item \textbf{Bounded-momentum assumption.}  Needed because $R = \rho p$
-        is not uniformly Lipschitz without it.  It is standard for
-        viscosity solutions of coercive HJB, but should be justified more
-        carefully (cite Lasry--Lions or your book).
-  \item \textbf{``First explicit rate'' claim.}  I would like you to check
-        this against Lavigne--Pfeiffer 2023 (policy iteration for
-        non-separable MFGs).  They give a method, but I am not sure they
-        give an explicit \emph{rate}.
-  \item \textbf{Title.}  The current title is ``Generative Adversarial
-        Networks for Mean Field Games with Weakly Non-Separable
-        Hamiltonians.''  Given that the paper does not implement a GAN
-        end-to-end, a more conservative title may be more honest,
-        e.g.\ ``A fixed-point GAN scheme for Mean Field Games with weakly
-        non-separable Hamiltonians.''  I do not have a strong preference.
-\end{enumerate}
-
-% ----------------------------------------------------------------
-\section{Questions where I would value your input}
-
-\begin{enumerate}[noitemsep, leftmargin=*]
-  \item Does the bilinear-case proof (Proposition~3.2) read correctly?
-        I rewrote it to handle $R = \rho p$ directly, with the no-drift
-        equilibrium and a Fourier-mode argument.  An earlier version of
-        the proof secretly used the density-only case, which a careful
-        reviewer would catch.
-  \item Is the bounded-momentum assumption acceptable, or should it be
-        derived from $L^\infty$ estimates on $\nabla\varphi$ via standard
-        viscosity theory?
-  \item Is SICON the right venue?  My current preference is SICON, with
-        ESAIM:COCV or Numerische Mathematik as backup.  Would you
-        recommend a different journal?
-  \item Are there suggested handling editors and referees you would like
-        me to include in the cover letter?  I have drafted suggestions
-        (Cardaliaguet, Acciaio, Bensoussan, Carmona for editors;
-        Achdou, Laurière, Ruthotto, Nurbekyan for referees) but would
-        defer to you.
-  \item Before submission, would you prefer that I (a) add a small
-        finite-difference reference experiment, (b) implement the full
-        GAN inner solver, or (c) submit as is and address experimental
-        gaps during revision?
-\end{enumerate}
-
-% ----------------------------------------------------------------
-\section{Concrete proposed next steps}
-
-If you agree the direction is good and the math is correct, my plan is:
-
-\begin{enumerate}[noitemsep, leftmargin=*]
-  \item Address any specific concerns you raise.
-  \item Add a small finite-difference reference experiment on MFG-LWR at
-        $\eps=0.5,\,0.8,\,1.0$ to complement the linearised numerics.
-  \item Post a preprint on arXiv (\texttt{math.OC} primary, \texttt{cs.LG}
-        cross-list).
-  \item Submit to SICON with the draft cover letter (also in the repo).
-  \item Begin work on the full neural-network inner solver as a
-        follow-up paper / revision response.
-\end{enumerate}
-
-I would value your feedback on the math, the experiments, and the
-submission strategy.  I am happy to discuss in your office at any time
-that suits you.
+\textbf{Extended-MFGAN fixed-point scheme.}
 
 \medskip
-\noindent Best regards, \\[6pt]
-Hikmatullo
+\textbf{Input.} A Hamiltonian of the form
+\[
+  H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p),
+\]
+diffusion coefficient \(\nu\geq 0\), terminal cost \(g\), initial density \(\rho_0\), an inner GAN solver, and the number of outer iterations \(K\).
+
+\medskip
+\textbf{Initialization.} Set \(\rho^0\leftarrow \rho_0\).
+
+\medskip
+\textbf{Iteration.} For \(k=0,1,\dots,K-1\), do the following:
+\begin{enumerate}[noitemsep]
+  \item Define the frozen effective Hamiltonian
+  \[
+    H^k(x,p):=H_0(x,p)+\eps R(x,\rho^k(x,t),p).
+  \]
+  Once \(\rho^k\) is fixed, this Hamiltonian depends only on \((x,p)\).
+
+  \item Solve the corresponding separable MFG using the inner GAN solver:
+  \[
+    (\varphi^{k+1},\rho^{k+1})
+    \leftarrow \mathrm{APAC\text{-}Net}(H^k,f_0,g,\rho_0).
+  \]
+\end{enumerate}
+
+\medskip
+\textbf{Output.} Return \((\varphi^K,\rho^K)\).
+\end{tcolorbox}
+
+When $\eps=0$, the effective Hamiltonian is independent of the previous density, and the scheme reduces to the original separable GAN solver after one outer step. For $\eps>0$, the additional cost is $K$ inner solves. Once a contraction factor $\kappa_\eps<1$ is known, the number of outer iterations needed to reach accuracy $\delta$ is of order
+\[
+  K \sim \frac{\log(1/\delta)}{\log(1/\kappa_\eps)}.
+\]
+
+\section{Convergence result}
+
+\subsection{Assumptions}
+
+The current theorem is proved under the following assumptions.
+
+\begin{enumerate}[leftmargin=*]
+  \item $H_0$ is $c_0$-strongly convex in $p$.
+  \item $f_0$ satisfies the Lasry--Lions monotonicity condition with constant $\lambda>0$.
+  \item The perturbation $R$ is Lipschitz on the admissible region, with constants $L_R$ in the density variable and $L_{R,p}$ in the momentum variable.
+  \item $\nabla_p R$ is $L_{p\rho}$-Lipschitz with respect to the frozen density.
+  \item The densities satisfy uniform bounds
+  \[
+    0<\rho_{\min}\leq \rho \leq \rho_{\max},
+  \]
+  and the value functions satisfy a bounded-momentum estimate
+  \[
+    \norm{\nabla\varphi}_{L^\infty}\leq u_{\max}.
+  \]
+\end{enumerate}
+
+The bounded-momentum assumption is natural for coercive Hamilton--Jacobi equations, but I still need to justify it more carefully in the manuscript, either by citing standard viscosity theory or by deriving the estimate in the specific setting considered here.
+
+\subsection{GAN-tractable regime}
+
+The Hamiltonian is said to be in the GAN-tractable regime if
+\[
+  \alpha_\eps := c_0\rho_{\min}-3\eps L_{R,p}\rho_{\max}>0,
+\]
+and
+\[
+  \kappa_\eps
+  :=
+  \frac{
+  \eps L_R+
+  \sqrt{\eps^2L_R^2+
+  \lambda\eps^2L_{p\rho}^2\rho_{\max}^2/\alpha_\eps}
+  }{2\lambda}
+  <1.
+\]
+
+In the density-only case $R=R(x,\rho)$, the momentum-dependent constants vanish, and the condition reduces to the simpler threshold
+\[
+  \kappa=\frac{\eps L_R}{\lambda}<1,
+\]
+which is the threshold used in the numerical experiments of Section~5.
+
+\subsection{Main contraction theorem}
+
+Under the assumptions above and the GAN-tractable condition, the outer fixed-point map is an $L^2$ contraction:
+\[
+  \norm{\rho^{k+1}-\rho^*}_{L^2((0,T)\times\Omega)}
+  \leq
+  \kappa_\eps
+  \norm{\rho^k-\rho^*}_{L^2((0,T)\times\Omega)}.
+\]
+Here $\rho^*$ denotes the fixed point, equivalently the density component of the solution to the original weakly non-separable MFG.
+
+Since $\Omega$ is bounded, this also gives a Wasserstein-type estimate of the form
+\[
+  \W_2(\rho^k(t,\cdot),\rho^*(t,\cdot))
+  \leq C\kappa_\eps^{k/2},
+\]
+with a constant depending on the domain and the density bounds.
+
+I currently state this as an explicit convergence rate for a GAN-based solver in the weakly non-separable setting. Before making this claim strongly in a submission, I will compare it carefully with the existing policy-iteration and non-separable MFG literature, in particular Lavigne--Pfeiffer (2023).
+
+\subsection{Proof strategy}
+
+The proof uses the Lasry--Lions duality identity for two MFG solutions $(\varphi_i,\rho_i)$ corresponding to two frozen densities $\bar\rho_i$. After subtracting the two systems and computing
+\[
+  \frac{d}{dt}\int_\Omega (\varphi_1-\varphi_2)(\rho_1-\rho_2)\,dx,
+\]
+the diffusion terms cancel, and integration by parts gives a residual identity of the form
+\[
+  \int_0^T(A+C)\,dt+
+  \int_0^T B\,dt=0.
+\]
+The monotonicity of $f_0$ gives
+\[
+  B\leq -\lambda\norm{\rho_1-\rho_2}_{L^2}^2.
+\]
+The strongly convex part of the Hamiltonian gives a favorable sign, while the perturbative terms involving $R$ are controlled by
+\[
+  \eps L_R,\qquad \eps L_{R,p},\qquad \eps L_{p\rho}.
+\]
+Combining these estimates leads to an inequality of the form
+\[
+  \lambda\norm{\delta\rho}_{L^2}^2
+  \leq
+  \eps L_R
+  \norm{\delta\bar\rho}_{L^2}
+  \norm{\delta\rho}_{L^2}
+  +
+  B_\eps
+  \norm{\delta\bar\rho}_{L^2}^2.
+\]
+A quadratic-formula argument then yields the contraction factor $\kappa_\eps$, and the Banach fixed-point theorem gives convergence of the outer iteration.
+
+\section{Sharpness in a model example}
+
+For the bilinear family
+\[
+  H_\eps(\rho,p)=\frac12p^2-p+\eps\rho p,
+\]
+linearization around the no-drift uniform equilibrium
+\[
+  (\rho^*,p^*)=(1,1-\eps)
+\]
+leads to an explicit Fourier-mode calculation. In this example, the linearized outer map has operator norm
+\[
+  \frac{\eps|1-\eps|}{\lambda},
+\]
+which matches the predicted contraction rate in the corresponding regime. In particular, when $\eps L_R > \lambda$ the operator norm exceeds one, so the linearized iteration grows geometrically rather than decaying. This shows that the threshold $\eps L_R < \lambda$ is necessary in the linearized regime, not merely a technical convenience.
+
+\section{Numerical validation completed so far}
+
+At this stage, the numerical experiments validate the analytically derived linearized outer map. They do not yet implement the full APAC-Net or MFGAN inner solver.
+
+The current experiments are:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Separable limit, $\eps=0$.} The error drops to machine precision in one outer step, confirming that the method reduces to the separable GAN solver in this limit.
+
+  \item \textbf{Bilinear MFG-LWR model.} For $\lambda=0.2$, the empirical contraction factor agrees with the predicted value
+  \[
+    \kappa=\frac{\eps|1-\eps|}{\lambda}
+  \]
+  across the tested range of $\eps$.
+
+  \item \textbf{Density-only perturbation.} The empirical transition occurs at the predicted threshold
+  \[
+    \eps L_R=\lambda,
+  \]
+  and the observed contraction matches the theoretical rate.
+\end{enumerate}
+
+These experiments support the sharpness of the contraction theorem in the linearized setting. However, they should be presented as validation of the outer fixed-point theory, not as a complete neural-network implementation.
+
+\section{Main limitations}
+
+I do not yet consider the manuscript fully ready for journal submission. The main issues are the following.
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{No full neural-network pipeline yet.} The current experiments use the analytically derived linearized map. They do not train an APAC-Net or MFGAN inner solver end-to-end. A finite-difference reference experiment would already strengthen the paper, and a full GAN implementation would be ideal.
+
+  \item \textbf{The factor $3$ in the GAN-tractable condition.} The factor appears from a three-way decomposition in the proof. I kept it to make the absorption argument transparent, but it may be possible to improve it using a sharper Young inequality argument.
+
+  \item \textbf{Bounded-momentum assumption.} This is needed when $R$ depends on $p$, for example in the bilinear case $R=\rho p$. I need to justify this assumption more carefully.
+
+  \item \textbf{Novelty of the explicit-rate claim.} I will check this claim against Lavigne--Pfeiffer (2023) and the broader policy-iteration literature before making any novelty statement in the abstract or introduction.
+
+  \item \textbf{Title and positioning.} Since the full GAN pipeline is not yet implemented, a conservative title such as
+  \begin{center}
+  \emph{A Fixed-Point GAN Scheme for Weakly Non-Separable Mean Field Games}
+  \end{center}
+  may be more accurate than a title that suggests a complete implemented GAN method.
+\end{enumerate}
+
+\section{Questions for discussion}
+
+I would especially appreciate your advice on the following points.
+
+\begin{enumerate}[leftmargin=*]
+  \item Does the bilinear-case argument, in particular the Fourier-mode calculation for
+  $H_\eps=\frac12p^2-p+\eps\rho p$, look mathematically correct?
+
+  \item Is the bounded-momentum assumption acceptable in this setting, or should I derive it explicitly from standard estimates for coercive Hamilton--Jacobi equations?
+
+  \item Do you think a finite-difference reference experiment is enough before submission, or should I first implement the full neural-network inner solver?
+
+  \item Once the mathematical and experimental parts are strengthened, what would be the most appropriate publication strategy for this project?
+
+  \item Would you recommend changing the title or positioning of the paper to make the current contribution more precise and honest?
+\end{enumerate}
+
+\section{Proposed next steps}
+
+If you think the direction is promising, my proposed next steps are:
+
+\begin{enumerate}[leftmargin=*]
+  \item revise the proof according to your comments;
+  \item add a finite-difference reference experiment for the bilinear model;
+  \item make the novelty claim more precise after checking the closest related work;
+  \item prepare a cleaner manuscript version for further feedback;
+  \item discuss the publication strategy once the mathematical proof and experiments are in stronger shape.
+\end{enumerate}
+
+I would value the chance to discuss any of these points in person at your convenience.
+
 \end{document}
