@@ -26,7 +26,7 @@
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\eps}{\varepsilon}
 
-\title{A Fixed-Point GAN Scheme for Weakly Non-Separable Mean Field Games}
+\title{Research Note:\ Fixed-Point GAN Scheme for Weakly Non-Separable Mean Field Games}
 \author{Hikmatullo Ismatov\\
 \texttt{hikmatullo.ismatov@kaust.edu.sa}}
 \date{\today}
@@ -38,8 +38,7 @@
 
 This short note summarizes the current state of my project on extending GAN-based solvers for Mean Field Games (MFGs) to weakly non-separable Hamiltonians. I describe the main idea, the proposed algorithm, the contraction theorem, the numerical validation completed so far, and the main points that still need improvement before a formal submission.
 
-The full draft, code, and slides are available at
-\href{https://github.com/hikmatulloismatov1999/MFG-GAN-Paper}{\texttt{github.com/hikmatulloismatov1999/MFG-GAN-Paper}}.
+I can share the full draft, code, and slides separately if they would be helpful.
 
 \section{Main idea}
 
@@ -54,6 +53,14 @@ The observation behind this project is simple. If the density variable inside th
   H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p),
 \]
 where $\eps>0$ measures the strength of the non-separable perturbation.
+
+\subsection*{Why weak non-separability is needed}
+
+The freezing idea can be applied formally to a general non-separable Hamiltonian $H(x,\rho,p)$: given a density $\rho^k$, one may define a frozen Hamiltonian $H^k(x,p)=H(x,\rho^k,p)$ and solve the corresponding subproblem. However, this observation alone does not imply convergence of the resulting outer iteration. The weakly non-separable structure
+\[
+  H(x,\rho,p)=H_0(x,p)-f_0(x,\rho)+\eps R(x,\rho,p)
+\]
+is used to make the dependence on the frozen density perturbative. In particular, the error created by changing the frozen density is proportional to $\eps$. Under a smallness condition on $\eps$, this perturbative error is dominated by the Lasry--Lions monotonicity of $f_0$ and the convexity of $H_0$, which yields a contraction of the outer density map. Thus, freezing the density is an algorithmic device, while weak non-separability is the stability assumption that makes the fixed-point argument rigorous.
 
 \section{Proposed algorithm}
 
@@ -96,21 +103,6 @@ When $\eps=0$, the effective Hamiltonian is independent of the previous density,
 \[
   K \sim \frac{\log(1/\delta)}{\log(1/\kappa_\eps)}.
 \]
-
-\subsection*{Remark: the role of \texorpdfstring{$\eps$}{eps}}
-
-It is important to be clear about the role of the parameter $\eps$ and of the word \emph{weakly} in the title.
-
-The freeze-$\rho$ step of the algorithm is well defined for \emph{any} non-separable Hamiltonian: once $\rho^k$ is fixed inside the residual, $H^k(x,p)$ is automatically a function of $(x,p)$ only, and any separable inner solver can be applied. There is no structural obstruction to running the scheme on a fully non-separable problem.
-
-The role of $\eps$ is therefore not algorithmic; it is about \emph{convergence of the outer fixed-point map}. The smallness condition $\eps L_R<\lambda$ (in the density-only case, with the obvious analogue in general) is what ensures that the map
-\[
-  \mathcal{T}: \bar\rho \;\longmapsto\;
-  \rho \;=\; \text{density component of the separable MFG with frozen}\ \bar\rho
-\]
-is a contraction in $L^2$. Without such a smallness condition, $\mathcal{T}$ may fail to be contractive: the outer iteration is still well defined, but it can oscillate or grow geometrically rather than converge. This is shown explicitly in the bilinear example of Section~4, where the linearized outer map has operator norm $\eps|1-\eps|/\lambda$, exceeding one as soon as $\eps L_R\geq\lambda$.
-
-In short, the word \emph{weakly} refers to a convergence condition on the outer map. It is not a structural restriction on the underlying MFG and does not exclude any particular Hamiltonian a priori; it simply identifies the regime in which the outer fixed-point iteration is guaranteed to converge with the explicit rate stated below.
 
 \section{Convergence result}
 
@@ -155,9 +147,8 @@ and
 
 In the density-only case $R=R(x,\rho)$, the momentum-dependent constants vanish, and the condition reduces to the simpler threshold
 \[
-  \kappa=\frac{\eps L_R}{\lambda}<1,
+  \kappa=\frac{\eps L_R}{\lambda}<1.
 \]
-which is the threshold used in the numerical experiments of Section~5.
 
 \subsection{Main contraction theorem}
 
@@ -177,7 +168,7 @@ Since $\Omega$ is bounded, this also gives a Wasserstein-type estimate of the fo
 \]
 with a constant depending on the domain and the density bounds.
 
-I currently state this as an explicit convergence rate for a GAN-based solver in the weakly non-separable setting. Before making this claim strongly in a submission, I will compare it carefully with the existing policy-iteration and non-separable MFG literature, in particular Lavigne--Pfeiffer (2023).
+I currently state this as an explicit convergence rate for a GAN-based solver in the weakly non-separable setting. Before making this claim strongly in a submission, I would like to compare it carefully with existing policy-iteration and non-separable MFG literature, especially Lavigne--Pfeiffer (2023).
 
 \subsection{Proof strategy}
 
@@ -223,9 +214,9 @@ linearization around the no-drift uniform equilibrium
 \]
 leads to an explicit Fourier-mode calculation. In this example, the linearized outer map has operator norm
 \[
-  \frac{\eps|1-\eps|}{\lambda},
+  \frac{\eps|1-\eps|}{\lambda}.
 \]
-which matches the predicted contraction rate in the corresponding regime. In particular, when $\eps L_R > \lambda$ the operator norm exceeds one, so the linearized iteration grows geometrically rather than decaying. This shows that the threshold $\eps L_R < \lambda$ is necessary in the linearized regime, not merely a technical convenience.
+This matches the predicted contraction rate in the corresponding regime. It also shows that the smallness condition is not merely technical: when the perturbation strength is too large compared with the monotonicity constant, the outer iteration is no longer contractive.
 
 \section{Numerical validation completed so far}
 
@@ -262,7 +253,7 @@ I do not yet consider the manuscript fully ready for journal submission. The mai
 
   \item \textbf{Bounded-momentum assumption.} This is needed when $R$ depends on $p$, for example in the bilinear case $R=\rho p$. I need to justify this assumption more carefully.
 
-  \item \textbf{Novelty of the explicit-rate claim.} I will check this claim against Lavigne--Pfeiffer (2023) and the broader policy-iteration literature before making any novelty statement in the abstract or introduction.
+  \item \textbf{Novelty of the explicit-rate claim.} The claim should be checked carefully against the non-separable MFG and policy-iteration literature. I would prefer to state it conservatively unless we are certain that no comparable explicit rate is known.
 
   \item \textbf{Title and positioning.} Since the full GAN pipeline is not yet implemented, a conservative title such as
   \begin{center}
@@ -276,7 +267,7 @@ I do not yet consider the manuscript fully ready for journal submission. The mai
 I would especially appreciate your advice on the following points.
 
 \begin{enumerate}[leftmargin=*]
-  \item Does the bilinear-case argument, in particular the Fourier-mode calculation for
+  \item Does the bilinear-case argument, especially the Fourier-mode calculation for
   $H_\eps=\frac12p^2-p+\eps\rho p$, look mathematically correct?
 
   \item Is the bounded-momentum assumption acceptable in this setting, or should I derive it explicitly from standard estimates for coercive Hamilton--Jacobi equations?
@@ -297,7 +288,7 @@ If you think the direction is promising, my proposed next steps are:
   \item add a finite-difference reference experiment for the bilinear model;
   \item make the novelty claim more precise after checking the closest related work;
   \item prepare a cleaner manuscript version for further feedback;
-  \item discuss the publication strategy once the mathematical proof and experiments are in stronger shape.
+  \item discuss the publication strategy after the mathematical proof and experiments are in stronger shape.
 \end{enumerate}
 
 I would value the chance to discuss any of these points in person at your convenience.
