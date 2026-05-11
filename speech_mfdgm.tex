@@ -1,0 +1,854 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\titleformat{\section}[block]{\large\bfseries\color{blue!50!black}}{}{0pt}{}
+\titleformat{\subsection}[block]{\bfseries\color{blue!50!black}}{}{0pt}{}
+\setlength{\parskip}{0.5em}
+
+\title{Speaker script for \emph{Deep Learning for Mean Field Games with Non-Separable Hamiltonians}}
+\author{Companion to \texttt{presentation\_mfdgm.tex}\\
+        Hikmatullo Ismatov}
+\date{}
+
+\begin{document}
+\maketitle
+
+\textit{Each section below corresponds to one slide.  Read each section as one
+``unit of speech'' --- roughly 60--90 seconds per slide.  Total: about 40--45
+minutes.  Trim freely; the most important slides to deliver carefully are
+4--7 (foundations), 13--16 (GANs), 18--19 (Hopf), 26--28 (MFDGM), and 33--37
+(our work).}
+
+% ================================================================
+\section*{Slide 1 --- Title page}
+
+Hello everyone. Thank you for being here today.
+
+My name is Hikmatullo Ismatov, I am a graduate student at KAUST, and this talk
+is joint work with my supervisor Professor Diogo Gomes.
+
+Today I will walk us through a paper that was published in 2023 by
+Mouhcine Assouline and Badr Missaoui, called \emph{Deep Learning for Mean
+Field Games with Non-Separable Hamiltonians}. It appeared in the journal
+\emph{Chaos, Solitons and Fractals}.
+
+I will explain the paper slowly, defining every term, so that even if you
+have never heard of mean field games or GANs, you can follow.
+
+At the end of the talk I will also briefly present a new method we are
+developing in our group, which builds directly on this paper.
+
+% ================================================================
+\section*{Slide 2 --- What this talk covers}
+
+The plan of the talk has seven parts.
+
+We will start with foundations: what is a Mean Field Game, and why is it hard
+to solve in high dimensions. Then we will look at the two big families of
+deep-learning solvers for Mean Field Games: GAN-based methods and physics-
+informed methods.
+
+Before reading the paper, we need to understand three background tools:
+what a GAN is, what the Hopf formula is, and what APAC-Net is. These three
+sit behind everything in the paper.
+
+After that, we will read the paper itself, both the algorithm and the
+convergence theory. We will look at the experiments at the end.
+
+And finally, I will tell you what our group is doing on top of this paper.
+
+Important: please interrupt me at any time with questions. I will define
+every term before I use it.
+
+% ================================================================
+\section*{Slide 3 --- Part 1 separator}
+
+\textit{(Section page, automatic.)}  Take a breath, drink water.  Say:
+``Part 1: foundations.''
+
+% ================================================================
+\section*{Slide 4 --- What is a Mean Field Game?}
+
+Imagine the following picture. A thousand drivers on the same highway. Each
+driver wants to reach their destination quickly. But the road has limited
+capacity, so where it is crowded, everyone slows down, and where it is empty,
+everyone speeds up.
+
+This means each driver's best strategy depends on what everyone else does.
+And everyone else's strategy depends on each driver. The whole situation is
+circular.
+
+A Mean Field Game is the mathematical theory that resolves this circularity.
+It was developed independently by Lasry and Lions in 2007, and by Huang,
+Caines, and Malham\'e in 2006. The idea is to find a Nash equilibrium: a
+strategy from which no single agent benefits by changing their mind alone.
+
+The word ``mean field'' comes from physics. It means: no individual agent is
+big enough to matter. Only the average behaviour of the entire crowd matters.
+
+% ================================================================
+\section*{Slide 5 --- The two quantities we care about}
+
+At Nash equilibrium, there are two objects we need to compute.
+
+The first is the population density, denoted by $\rho(t, x)$. This tells you,
+at time $t$, how many drivers are at position $x$.
+
+The second is the value function, denoted by $\varphi(t, x)$. This is a more
+abstract object. Think of $\varphi$ as a map of regret. It tells each agent:
+``if you are at position $x$ at time $t$ and you play optimally from now
+on, how much cost will you accumulate?''
+
+So $\rho$ is observable in the world. You can stand on a bridge and count
+how many cars pass.  But $\varphi$ lives inside each driver's head. It is the
+agent's internal optimal-cost function.
+
+% ================================================================
+\section*{Slide 6 --- The MFG system}
+
+These two objects satisfy two coupled equations.
+
+The first is called the Hamilton-Jacobi-Bellman equation, or HJB for short.
+It governs the value function $\varphi$, and it runs backward in time. You
+start from a terminal condition at time $T$ and integrate backward to time
+zero. This is because the value function depends on what happens in the
+future.
+
+The second is the Fokker-Planck equation, or FP. It governs the density $\rho$
+and runs forward in time. You start from the initial density at time zero
+and integrate forward.
+
+The two equations are coupled. Look at the diagram on the right. The gradient
+of $\varphi$ tells each agent where to go: this becomes the drift in the
+Fokker-Planck equation. And the density $\rho$ enters the cost in the HJB
+equation. So neither equation can be solved alone.
+
+The number $\nu$ is the diffusion coefficient. When $\nu$ is zero, the
+problem is deterministic; when $\nu$ is positive, there is random noise.
+
+% ================================================================
+\section*{Slide 7 --- The Hamiltonian H}
+
+A Hamiltonian sounds intimidating, but it is just a fancy name for a cost
+function.
+
+Specifically, $H$ is defined as the Legendre transform of the running cost
+$L$. The formula on the slide says: $H$ of $x$, $\rho$, $p$ equals the
+supremum over velocities $v$ of $-v\cdot p$ minus $L$. The variable $p$
+plays the role of momentum.
+
+You do not need to remember the formula. The key thing to remember is: $H$
+is given by the modeller. It is data of the problem. It packages all the
+agent's costs and interactions into one function.
+
+For example, if the running cost is one half $v$ squared minus $f_0$ of
+$\rho$, the Hamiltonian works out to one half $p$ squared minus $f_0$ of
+$\rho$. The momentum part and the density part stay separate.
+
+In the MFG, the variable $p$ becomes the gradient of $\varphi$. So $H$
+takes input $x$, $\rho$, and the gradient of $\varphi$.
+
+% ================================================================
+\section*{Slide 8 --- Separable vs non-separable Hamiltonians}
+
+This is the most important distinction in the entire talk. Please pay close
+attention.
+
+A Hamiltonian is called separable if it splits as $H_0$ of $x$, $p$ minus
+$f_0$ of $x$, $\rho$. The momentum part and the density part appear in
+different terms and are never multiplied together. An example is one half
+$p$ squared minus lambda times $\rho$. Notice $\rho$ and $p$ sit in
+separate terms.
+
+A Hamiltonian is non-separable if $\rho$ and $p$ appear multiplied together
+somewhere. The canonical example is the traffic flow model of Huang and
+collaborators from 2019: one half $p$ squared minus the term one minus
+$\rho$, multiplied by $p$. The factor one minus $\rho$ multiplies $p$
+directly. Density and momentum are entangled.
+
+Why does this matter? Because some methods, specifically the GAN family,
+only work when $H$ is separable. As soon as $\rho$ and $p$ are entangled,
+those methods break. The traffic flow model is the canonical hard example
+that motivates the entire paper.
+
+% ================================================================
+\section*{Slide 9 --- Part 2 separator}
+
+\textit{(Section page.)}  Say: ``Part 2: why is this hard?''
+
+% ================================================================
+\section*{Slide 10 --- The curse of dimensionality}
+
+Why can't we just solve the MFG with classical numerical methods?
+
+Classical methods, like finite differences, put down a grid of points
+covering the domain. If you have a one-dimensional problem with one hundred
+grid points, you have a hundred unknowns. Easy.
+
+Two dimensions with a hundred points per axis: ten thousand unknowns. Still
+fine.
+
+Three dimensions: one million unknowns. Doable.
+
+Ten dimensions: ten to the twentieth power. That is already very hard.
+
+A hundred dimensions: ten to the two hundredth power. This is more than the
+number of atoms in the entire universe.
+
+This is called the curse of dimensionality. Classical methods die in high
+dimensions.
+
+But many MFG applications, like multi-agent reinforcement learning, live in
+hundreds of dimensions. We need a different approach.
+
+% ================================================================
+\section*{Slide 11 --- Neural networks to the rescue}
+
+A neural network is just a parameterised function. The parameters are
+called weights. We can tune the weights.
+
+There is a famous theorem by Hornik from 1991, the Universal Approximation
+Theorem. It says: a neural network with a single hidden layer and enough
+neurons can approximate any continuous function to any desired accuracy. And
+this works in any dimension, without a grid.
+
+So the strategy is: replace the unknowns $\varphi$ and $\rho$ with neural
+networks $\varphi_\omega$ and $\rho_\theta$, where omega and theta are the
+weights. Then optimise the weights so the networks solve the PDE.
+
+Crucially, the number of parameters of a neural network does not blow up
+exponentially with dimension. A hundred-dimensional network with a hundred
+neurons per layer has only about ten thousand parameters. Tractable.
+
+This is why deep learning is the right tool for high-dimensional MFGs.
+
+% ================================================================
+\section*{Slide 12 --- Two ways to train the networks}
+
+There are two big families of methods.
+
+On the left, the physics-informed family. Sometimes called PINN, sometimes
+DGM. The idea is: plug the network into the PDE and minimise the residual.
+You sample random collocation points, evaluate the network and its
+derivatives there, plug into the PDE, and minimise the squared error.
+This works for any Hamiltonian. Today's paper sits here.
+
+On the right, the variational or GAN-based family. The idea is: rewrite the
+PDE as a saddle-point problem, a min-max, and let two networks play a game.
+Examples are APAC-Net by Lin and collaborators in 2021, and MFGAN by
+Ruthotto and collaborators in 2020. These methods only work when $H$ is
+separable, because they need the Hopf formula to turn the PDE into a
+saddle-point.
+
+Our work, which I will present at the end, bridges these two columns.
+
+% ================================================================
+\section*{Slide 13 --- Part 3 separator}
+
+\textit{(Section page.)}  Say: ``Part 3: what is a GAN?''
+
+% ================================================================
+\section*{Slide 14 --- Generative models: the goal}
+
+To understand GANs, forget about MFGs for a moment.
+
+The setup is this: I show you a million photographs of cats. I ask you to
+write a computer program that, when I press a button, outputs a new cat
+photo that I have never seen, but it has to look real.
+
+The mathematical version: you are given samples from an unknown probability
+distribution, called $P_\text{data}$. You want to build a program that
+produces fresh samples from that distribution.
+
+This is the generative modelling problem. Generative Adversarial Networks,
+or GANs, are one solution to it.
+
+% ================================================================
+\section*{Slide 15 --- GAN: a two-player game}
+
+A GAN, introduced by Goodfellow and collaborators in 2014, consists of two
+neural networks that play a game.
+
+The first network is called the generator, denoted $G_\theta$. It takes
+random noise $z$ as input and produces a fake sample $x$. The goal of the
+generator is to make the fakes look indistinguishable from real samples.
+
+The second network is called the discriminator, denoted $D_\omega$. It takes
+a sample, real or fake, and outputs the probability that the sample is real.
+The goal of the discriminator is to correctly catch the fakes.
+
+The two networks compete. The objective on the slide says: the discriminator
+wants to maximise the probability of correct classification, on real and
+fake samples. The generator can only influence the second term, and tries
+to minimise it, that is, to fool the discriminator.
+
+At equilibrium of this game, if both networks are powerful enough, the
+generator produces samples exactly from the true data distribution.
+
+Notice: this is itself a Nash equilibrium, of a two-player game. That is the
+first hint that GANs and MFGs are linked.
+
+% ================================================================
+\section*{Slide 16 --- The Wasserstein GAN}
+
+The original GAN has practical problems. It can be unstable to train. So a
+better version was introduced by Arjovsky, Chintala, and Bottou in 2017,
+called the Wasserstein GAN.
+
+In the Wasserstein GAN, instead of asking the discriminator real or fake,
+we ask it to assign a score to every sample. The discriminator is restricted
+to be 1-Lipschitz, meaning it cannot change too fast. The generator's job
+is to make its samples score high.
+
+There is a beautiful theorem from optimal transport theory, called the
+Kantorovich-Rubinstein duality. It says: the maximum value of this game is
+equal to the Wasserstein-1 distance between the real distribution and the
+generator's distribution.
+
+This means: training a Wasserstein GAN is literally minimising the
+Wasserstein distance. The training loss has a clean geometric meaning at
+every step. That is why W-GANs are easier to train.
+
+% ================================================================
+\section*{Slide 17 --- Why are GANs and MFGs linked?}
+
+Now look at the two formulas on the slide.
+
+The first is the Wasserstein GAN, which is a min-max problem over two
+networks.
+
+The second is the saddle-point form of a separable MFG, derived by Cao,
+Guo, and Lauri\`ere in 2021. It is also a min-max problem, with $\rho$
+playing the role of the generator and $\varphi$ playing the role of the
+discriminator.
+
+The two have exactly the same structure. A distribution-producing object
+plays against a function being optimised. This shared structure is the
+reason GAN-based methods can solve separable MFGs.
+
+But, very important: deriving the saddle-point form of an MFG requires
+the Hopf formula. And the Hopf formula requires separability. We will see
+why on the next two slides.
+
+% ================================================================
+\section*{Slide 18 --- Part 4 separator}
+
+\textit{(Section page.)}  Say: ``Part 4: the Hopf formula.''
+
+% ================================================================
+\section*{Slide 19 --- The Legendre transform}
+
+The Legendre transform is an old idea from physics, used to convert between
+position and momentum.
+
+For a function $L$ of velocity $v$, the Legendre transform $L^*$ is defined
+on the slide. It takes the supremum over $v$ of the inner product $p \cdot
+v$ minus $L$ of $v$.
+
+Two concrete examples on the slide:
+
+Example one. If $L$ of $v$ equals one half $v$ squared, the Legendre
+transform is one half $p$ squared.
+
+Example two, more interesting. If $L$ depends on velocity and density, $L$
+of $v$, $\rho$ equals one half $v$ squared plus $f$ of $\rho$, then the
+Legendre transform in $v$ only is one half $p$ squared plus the same $f$ of
+$\rho$.
+
+Notice the crucial point: the $f$ of $\rho$ piece was constant in $v$, so
+it sat there during the transform. The Legendre transform preserved the
+separation between $\rho$ and $p$.
+
+This is exactly why separability matters: the Legendre transform plays
+nicely with $\rho$ when $\rho$ does not interact with $v$.
+
+% ================================================================
+\section*{Slide 20 --- The Hopf formula}
+
+The Hopf formula is a way to write the solution of a Hamilton-Jacobi
+equation as an optimisation problem.
+
+For the simplest HJ equation, $\partial_t \varphi$ plus $H$ of gradient $\varphi$
+equals zero, the Hopf formula says: $\varphi$ of $t$, $x$ equals the sup
+over $y$ of the inf over $z$ of an expression involving the initial data,
+the time, and the Hamiltonian. You can see it on the slide.
+
+The right-hand side is a min-max problem.
+
+This is why the Hopf formula is so important for our story. A min-max problem
+is exactly what GAN-style training can attack. The Hopf formula is the
+bridge that turns an MFG into a GAN.
+
+% ================================================================
+\section*{Slide 21 --- Why the Hopf formula needs separability}
+
+For an MFG, the Hamilton-Jacobi equation has $H$ of $x$, $\rho$, gradient
+$\varphi$. If $H$ is separable, then $f_0$ of $x$, $\rho$ is constant in
+$p$. You can pull it out, treat it as a known source term for $\varphi$, and
+apply the Hopf formula to the remaining $H_0$ of $x$, gradient $\varphi$.
+This gives a clean min-max problem, exactly what APAC-Net uses.
+
+If $H$ is non-separable, the density and momentum are entangled inside $H$.
+The Legendre transform variable cannot factor cleanly. The Hopf formula does
+not give a min-max reformulation any more.
+
+This is the structural barrier. The whole reason APAC-Net and MFGAN cannot
+solve the traffic flow MFG.
+
+The key insight in our paper, which I will show at the end, is to sidestep
+this barrier by freezing the density. Then the algebraic structure works
+again. But more on that later.
+
+% ================================================================
+\section*{Slide 22 --- Part 5 separator}
+
+\textit{(Section page.)}  Say: ``Part 5: APAC-Net.''
+
+% ================================================================
+\section*{Slide 23 --- APAC-Net}
+
+APAC-Net was introduced by Lin and collaborators in 2021. It targets the
+separable case.
+
+APAC-Net has two networks. The first is a generator $G_\theta$, which takes
+random noise $z$ and time $t$, and outputs a position $x$ in $d$-dimensional
+space. As you sample $z$ many times at a fixed $t$, you get many positions,
+and these positions distribute according to the population density at time
+$t$. So the generator implicitly parameterises the density.
+
+The second network is a critic $\varphi_\omega$. It takes time $t$ and
+position $x$, outputs a scalar. This is the value function.
+
+The objective comes from the Hopf formula. It is a saddle-point: the
+generator minimises, the critic maximises. The training loop is the same as
+a Wasserstein GAN: alternating updates of the two networks.
+
+% ================================================================
+\section*{Slide 24 --- What APAC-Net gives and what it does not}
+
+What APAC-Net gives you, on the positive side:
+
+You can sample the density distributionally through the generator. You get
+the value function directly. You have a Wasserstein-1 convergence
+guarantee. And the method scales to high dimensions.
+
+What APAC-Net cannot do:
+
+It cannot handle non-separable Hamiltonians. The saddle-point reformulation
+breaks. In particular, it cannot solve the traffic flow MFG-LWR.
+
+Also, no explicit convergence rate is proved. We know it converges in
+Wasserstein-1, but we do not know how fast.
+
+This is the state of the art before MFDGM. Now we are ready to read the paper.
+
+% ================================================================
+\section*{Slide 25 --- Part 6 separator}
+
+\textit{(Section page.)}  Say: ``Part 6: the paper itself.''
+
+% ================================================================
+\section*{Slide 26 --- MFDGM: the idea}
+
+So we come to the paper of Assouline and Missaoui from 2023.
+
+Their key insight is very simple: stop trying to reformulate the MFG as a
+min-max problem. Just plug the networks into the PDEs and minimise the
+residual.
+
+Two networks, like before. The value network $\varphi_\omega$ approximates
+$\varphi$. The density network $\rho_\theta$ approximates $\rho$. Both take
+time and position as inputs and output a scalar.
+
+If the networks truly solve the MFG, then by definition the PDE residuals
+are zero. So we define loss functions that measure how far the residuals
+are from zero, and let an optimiser fix the weights.
+
+The crucial point: the Hamiltonian $H$ appears directly inside the loss. We
+never reformulate as a saddle-point. No Hopf formula is needed. So the
+method works for any Hamiltonian, separable or not.
+
+% ================================================================
+\section*{Slide 27 --- The loss functions of MFDGM}
+
+There are two loss functions, one per equation.
+
+The HJB loss measures how badly the value network violates the HJB equation.
+At each random collocation point in the domain, we plug $\varphi_\omega$
+and $\rho_\theta$ into the HJB and square the residual. There is also a
+terminal-cost penalty.
+
+The FP loss measures how badly the density network violates the
+Fokker-Planck equation. Same idea: random collocation points, plug in,
+square the residual. There is also an initial-condition penalty.
+
+The points are sampled randomly inside the domain. This is the PINN
+paradigm, introduced by Raissi, Perdikaris, and Karniadakis in 2019: the
+network learns the PDE solution by minimising the residual at random points.
+
+% ================================================================
+\section*{Slide 28 --- Algorithm 1 of MFDGM}
+
+The training algorithm is exactly what you would expect.
+
+Initialise both networks. Repeat $K$ times: sample random points, compute
+the HJB loss using the current $\varphi_\omega$ and $\rho_\theta$, take one
+Adam optimiser step on the value network. Then sample fresh random points,
+compute the FP loss, take one Adam step on the density network.
+
+This is alternating training. The HJB step uses the current density, and
+the FP step uses the just-updated value function. Two separate Adam
+optimisers, one per network.
+
+The authors emphasise that having two separate losses with two separate
+optimisers, instead of one combined loss, converges faster than DGM-MFG, an
+earlier method.
+
+% ================================================================
+\section*{Slide 29 --- Part 7 separator}
+
+\textit{(Section page.)}  Say: ``Part 7: convergence theory.''
+
+% ================================================================
+\section*{Slide 30 --- Universal Approximation, recalled}
+
+To prove that MFDGM converges, the authors rely on the Universal
+Approximation Theorem of Hornik from 1991.
+
+The theorem says: the class of single-hidden-layer neural networks with a
+$C^2$ non-constant bounded activation function is dense, in the
+$C^2$-uniform sense, in continuous functions on any compact set.
+
+In plain English: as you increase the number of neurons in the hidden
+layer, you can approximate any sufficiently smooth function to arbitrary
+accuracy, including its derivatives up to second order.
+
+This is exactly what is needed for MFDGM: the network must approximate not
+just the function values but also the derivatives that appear in the PDE.
+
+% ================================================================
+\section*{Slide 31 --- Theorem 3.1 (existence)}
+
+Theorem 3.1 of the paper says: under regularity conditions H1, H2, H3, for
+any positive epsilon, there exist neural networks $\rho_\theta$ and
+$\varphi_\omega$ such that the residual losses are at most some constant
+times epsilon.
+
+In plain English: networks exist that make the residual arbitrarily small.
+
+This is a statement about expressivity. It says the networks are powerful
+enough. It does not yet say that we can train them; it just says good
+networks exist.
+
+The proof uses the Universal Approximation Theorem in the version for
+derivatives.
+
+% ================================================================
+\section*{Slide 32 --- Theorem 3.2 (convergence)}
+
+Theorem 3.2 is the main convergence theorem. It says, under stronger
+conditions H4, H5, H6, the trained networks converge to the true MFG
+solution, in $L^p$ for any $p$ less than two.
+
+Stop and unpack this.
+
+The trained networks converge to the true solution. Good.
+
+In $L^p$ for $p$ less than two. This is a weak convergence statement. It is
+weaker than $L^2$, much weaker than $L^\infty$, and weaker than Wasserstein.
+
+The theorem does not give a rate. Just $\to$ as the network width goes to
+infinity. No information about how fast.
+
+So this is a positive result, but a soft one. It is the gap our work
+addresses.
+
+% ================================================================
+\section*{Slide 33 --- Why L\^p for p<2 is weak}
+
+Why exactly is $L^p$ for $p$ less than two a weak guarantee?
+
+On a bounded domain, smaller $p$ is weaker. The chain is: $L^\infty$ is the
+strongest, then $L^2$, then $L^1$. Inclusion goes from strong to weak.
+
+To see this concretely, consider a sequence of spike functions $f_n$, equal
+to $n$ on the small interval from zero to one over $n$.
+
+The $L^1$ norm is one, constant for all $n$. The $L^2$ norm is square root
+of $n$, going to infinity. The $L^\infty$ norm is $n$, going to infinity.
+
+So a sequence can be bounded in $L^1$ but have arbitrarily tall spikes that
+blow up in $L^2$. Convergence in $L^1$ is consistent with crazy spikes.
+$L^2$ forbids them.
+
+For MFDGM, $L^p$ convergence with $p$ less than two does not rule out
+transient spikes in the density. It is a weak statement.
+
+By contrast, Wasserstein-2 convergence does rule out spikes. It is
+geometrically meaningful. Strengthening from $L^p$, $p$ less than two, to
+Wasserstein-2 is the technical improvement our paper makes.
+
+% ================================================================
+\section*{Slide 34 --- Part 8 separator}
+
+\textit{(Section page.)}  Say: ``Part 8: experiments.''
+
+% ================================================================
+\section*{Slide 35 --- Test 1: analytic separable benchmark}
+
+The first experiment uses a separable MFG with a known analytic solution,
+taken from the APAC-Net paper.
+
+The Hamiltonian and the terminal cost are specifically chosen so that the
+true solution can be written explicitly: $\varphi$ equals one half $x$
+squared minus $d$ times $t$, and $\rho$ is a standard Gaussian.
+
+In one dimension, the paper trains MFDGM with three hidden layers of one
+hundred neurons each, using the ResNet architecture and ten thousand
+training iterations.
+
+Figure 2 of the paper shows the MFDGM solution overlaid on the analytic
+solution at three time slices, $t$ equals zero point two five, zero point
+five, and zero point seven five. The two curves are essentially
+indistinguishable. The $L^2$ relative error drops to around one percent.
+
+This is a sanity check, but a good one.
+
+% ================================================================
+\section*{Slide 36 --- Tests 2 to 4: scaling}
+
+The paper does three further tests on this analytic benchmark.
+
+Test two: vary the number of hidden units from two to fifty in a single
+layer. As expected, more units gives more accuracy, shown in Figure 4.
+
+Test three: high dimensions, $d$ equals two, fifty, and one hundred. The
+residuals decay even at one hundred dimensions, shown in Figure 6.
+
+Test four: very high dimensions, up to two hundred, with just one hidden
+layer of one hundred neurons. The residuals still decay, shown in Figure 7,
+and the paper later shows results at three hundred dimensions in Figure 8.
+
+The headline of the paper: MFDGM scales to three hundred dimensions on a
+single layer. This is a strong claim and it is the main technical
+contribution.
+
+% ================================================================
+\section*{Slide 37 --- Comparison with APAC-Net, MFGAN, DGM-MFG}
+
+The paper also compares MFDGM against three other deep solvers on the same
+separable benchmark.
+
+Figure 9 of the paper shows the relative error of $\rho$ and $\varphi$ for
+all four methods.
+
+MFDGM achieves the lowest error, around ten to the minus two.
+MFGAN is comparable. APAC-Net is limited because its density is
+distributional and has to be estimated by kernel-density methods.
+DGM-MFG is slower because it uses a single combined loss.
+
+A caveat: this comparison is on a separable benchmark, so APAC-Net and
+MFGAN are allowed to play. The real test, which only MFDGM and classical
+Newton can run, is the next slide.
+
+% ================================================================
+\section*{Slide 38 --- The big test: MFG-LWR traffic flow}
+
+This is the experiment that justifies the entire paper.
+
+The problem is the MFG-LWR traffic flow model with a non-separable
+Hamiltonian. Domain is one-dimensional, time horizon one, terminal cost
+zero, and the initial density is a Gaussian bump.
+
+APAC-Net cannot run on this problem. The Hopf formula breaks. Only MFDGM
+and classical Newton can.
+
+The paper runs MFDGM both deterministically, $\nu$ equals zero, and
+stochastically, $\nu$ equals zero point five. Figure 10 shows the density,
+optimal cost, and speed at three different times. The solution evolves
+consistently with traffic-flow intuition: density disperses, speed adjusts.
+
+Figure 12 shows the fundamental diagram, flux versus density, which is a
+classical validation in traffic theory. The MFDGM solution matches the
+expected shape.
+
+This is the unique achievement of MFDGM: a deep solver for non-separable
+MFGs that scales to high dimensions.
+
+% ================================================================
+\section*{Slide 39 --- Part 9 separator}
+
+\textit{(Section page.)}  Say: ``Part 9: our contribution. Let me describe
+what our group is doing on top of this paper.''
+
+% ================================================================
+\section*{Slide 40 --- Where MFDGM leaves a gap}
+
+Before I describe our method, let me lay out the gap MFDGM leaves open.
+
+Look at the comparison table on the slide. Columns: handling of non-
+separable Hamiltonians, representation of $\rho$, convergence metric, and
+whether there is an explicit rate.
+
+APAC-Net handles only separable, but it has distributional $\rho$,
+Wasserstein-1 convergence. No rate.
+
+MFDGM handles any Hamiltonian, the good news. But its $\rho$ is a pointwise
+neural network. Its convergence is $L^p$ for $p$ less than two, which is
+weak. And no explicit rate.
+
+So neither method gives you all three properties: distributional $\rho$,
+Wasserstein convergence, and an explicit rate.
+
+The question is: can we close all three gaps simultaneously, at least in
+some useful regime, without giving up non-separable handling?
+
+% ================================================================
+\section*{Slide 41 --- Our insight: freeze the density}
+
+The key insight is very simple. Here it is.
+
+If $\rho$ is held fixed, any non-separable Hamiltonian becomes separable.
+
+Look at the diagram. The full non-separable MFG on the left. We freeze the
+density at the current iterate $\rho^k$. Then the effective Hamiltonian
+$H^k$ of $x$, $p$ is just $H_0$ plus epsilon times $R$ evaluated at $\rho^k$.
+Critically, this depends only on $x$ and $p$. It is separable in the sense
+the GAN solvers require.
+
+So we can apply APAC-Net to this separable subproblem. APAC-Net gives back
+a new density $\rho^{k+1}$. We update and repeat.
+
+This is essentially a fixed-point iteration on the density. Each step is one
+APAC-Net call.
+
+The whole research question is: when does this outer iteration converge,
+and how fast?
+
+% ================================================================
+\section*{Slide 42 --- Weakly non-separable Hamiltonians}
+
+To answer the question, we define the right class of Hamiltonians.
+
+We say $H$ is weakly non-separable with strength epsilon if it splits into
+three parts: a strongly convex base $H_0$ with convexity constant $c_0$;
+a Lasry-Lions monotone interaction $f_0$ with constant lambda; and a
+coupling residual $R$, scaled by epsilon, that is Lipschitz in $\rho$ with
+constant $L_R$ and Lipschitz in $p$ with constant $L_{R,p}$.
+
+Special cases. When epsilon is zero, you recover the standard separable
+MFG. When $R$ is rho times $p$, you recover the traffic flow model. When
+$R$ depends only on density, $L_{R,p}$ is zero.
+
+The most important quantity is the boxed condition at the bottom: epsilon
+times $L_R$ strictly less than lambda. We call this the GAN-tractable
+regime. The threshold balances coupling strength against the restoring
+force from monotonicity.
+
+Below the threshold, our method works. Above the threshold, it fails.
+
+% ================================================================
+\section*{Slide 43 --- The Extended-MFGAN algorithm}
+
+The algorithm is the obvious thing.
+
+Initialise the density. Then loop. At each step, build the effective
+Hamiltonian by plugging in the current density. Run an inner GAN solver, for
+example APAC-Net, on the resulting separable MFG. Update the density.
+Repeat.
+
+A nice sanity check: when epsilon is zero, the effective Hamiltonian does
+not depend on the current density. The outer loop converges in one step,
+and Extended-MFGAN reduces exactly to APAC-Net.
+
+The total cost is $K$ outer iterations times one APAC-Net call. Once we
+prove the contraction rate kappa, we have an explicit formula for how
+many outer iterations are needed: log one over delta divided by log one
+over kappa, for any desired accuracy delta.
+
+% ================================================================
+\section*{Slide 44 --- Our main theorem: L\^2 contraction}
+
+Our main result is the boxed theorem on the slide.
+
+Under monotonicity, strong convexity, bounded density, and the GAN-tractable
+condition, the outer iteration is an $L^2$ contraction. The error after
+step $k$ plus one is at most kappa times the error after step $k$, where
+kappa equals epsilon times $L_R$ divided by lambda.
+
+This implies Wasserstein-2 convergence at rate kappa to the $k$ over two.
+The square-root scaling comes from the standard $L^2$-to-Wasserstein
+inequality.
+
+This is the first explicit convergence rate for a deep MFG solver in the
+non-separable setting.
+
+The proof is via the Lasry-Lions duality identity, the same technique used
+to prove uniqueness of the MFG equilibrium in the classical theory.
+
+We also prove the rate is sharp on the bilinear traffic-flow family: the
+linearised outer map has operator norm exactly epsilon times absolute value
+of one minus epsilon divided by lambda.
+
+And we prove the condition is necessary: when epsilon $L_R$ is at least
+lambda, the iteration diverges, by an explicit linearised counterexample.
+
+% ================================================================
+\section*{Slide 45 --- Comparison: where we sit}
+
+Let me put our method back in the comparison table.
+
+APAC-Net: separable only, distributional, Wasserstein-1, no rate.
+
+MFDGM: non-separable, pointwise, $L^p$ for $p$ less than two, no rate.
+
+Our method, Extended-MFGAN: handles the weakly non-separable regime,
+distributional, $L^2$ and Wasserstein-2 convergence, explicit rate kappa
+to the $k$.
+
+We close all three gaps simultaneously, within the weakly non-separable
+regime.
+
+The trade-off is honest. We are restricted to epsilon $L_R$ less than
+lambda. Above this threshold, MFDGM remains the right tool. Our method
+complements MFDGM rather than competing with it.
+
+% ================================================================
+\section*{Slide 46 --- Summary}
+
+Let me summarise everything.
+
+The paper of Assouline and Missaoui. They introduce MFDGM, a physics-
+informed deep solver for Mean Field Games. It uses two neural networks
+trained alternately to minimise the HJB and FP residuals. It works for any
+Hamiltonian, including non-separable ones like traffic flow. It scales to
+three hundred dimensions on a single hidden layer. The convergence
+guarantee is $L^p$ for $p$ less than two, with no explicit rate.
+
+Our extension. We introduce weakly non-separable Hamiltonians, a controlled
+interpolation between separable and non-separable. We propose a fixed-point
+algorithm called Extended-MFGAN: freeze the density inside the residual,
+solve the resulting separable subproblem with an existing GAN solver,
+update, and repeat. We prove $L^2$ contraction with explicit rate epsilon
+$L_R$ over lambda, which gives Wasserstein-2 convergence. The threshold
+is sharp: we prove necessity by an explicit counterexample.
+
+Importantly, the two methods are complementary, not competing. MFDGM is the
+right tool above the threshold. Extended-MFGAN is the right tool below the
+threshold.
+
+% ================================================================
+\section*{Slide 47 --- Thank you}
+
+This brings me to the end of the talk.
+
+In one sentence: I walked us through a recent paper that pushes deep
+learning for Mean Field Games into the non-separable regime, and I showed
+how our follow-up work strengthens its guarantees to Wasserstein-2 with
+an explicit convergence rate.
+
+Thank you for your attention. I am very happy to take questions.
+
+\end{document}
