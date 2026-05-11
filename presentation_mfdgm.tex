@@ -126,7 +126,7 @@ and connect it to a new method we are developing.
 %% =================================================================
 %%  PART 1 -- FOUNDATIONS
 %% =================================================================
-\section{Part 1 \;\textbar\; Foundations}
+\section{\texorpdfstring{Part 1 \;\textbar\; Foundations}{Part 1 | Foundations}}
 
 \begin{frame}{What is a Mean Field Game? \;\textnormal{\small(intuition)}}
 \textbf{Picture this.} A thousand drivers on the same highway.
@@ -142,7 +142,7 @@ So each driver's best strategy depends on \alert{what everyone else does},
 and everyone else's strategy depends on each driver. \emph{Circular.}
 
 \medskip
-\begin{idea}[title=Mean Field Game (\citehl{Lasry--Lions 2007}, \citehl{Huang--Caines--Malham\'e 2006})]
+\begin{idea}[title={Mean Field Game (\citehl{Lasry--Lions 2007}, \citehl{Huang--Caines--Malham\'e 2006})}]
 The mathematical theory that resolves this circularity, by finding a
 \emph{Nash equilibrium}: a strategy from which no single agent benefits
 by deviating alone.
@@ -280,7 +280,7 @@ When $\rho$ and $p$ are entangled, those methods \emph{break}.
 %% =================================================================
 %%  PART 2 -- WHY HARD
 %% =================================================================
-\section{Part 2 \;\textbar\; Why is this hard?}
+\section{\texorpdfstring{Part 2 \;\textbar\; Why is this hard?}{Part 2 | Why is this hard?}}
 
 \begin{frame}{The curse of dimensionality}
 \textbf{Classical PDE solvers} (finite differences) put down a grid.
@@ -379,7 +379,7 @@ Works only for \xmark\;separable $H$.
 %% =================================================================
 %%  PART 3 -- GANS
 %% =================================================================
-\section{Part 3 \;\textbar\; What is a GAN?}
+\section{\texorpdfstring{Part 3 \;\textbar\; What is a GAN?}{Part 3 | What is a GAN?}}
 
 \begin{frame}{Generative models: the goal}
 \textbf{Setup.} I show you a million photos of cats.
@@ -509,7 +509,7 @@ We need to understand \emph{why}.  That is the next part.
 %% =================================================================
 %%  PART 4 -- HOPF FORMULA
 %% =================================================================
-\section{Part 4 \;\textbar\; The Hopf formula}
+\section{\texorpdfstring{Part 4 \;\textbar\; The Hopf formula}{Part 4 | The Hopf formula}}
 
 \begin{frame}{The Legendre transform}
 The \blue{Legendre transform} of a function $L(v)$ is
@@ -599,7 +599,7 @@ This is the structural reason the GAN family stops at separable $H$.
 %% =================================================================
 %%  PART 5 -- APAC-NET
 %% =================================================================
-\section{Part 5 \;\textbar\; APAC-Net (the GAN family)}
+\section{\texorpdfstring{Part 5 \;\textbar\; APAC-Net (the GAN family)}{Part 5 | APAC-Net (the GAN family)}}
 
 \begin{frame}{APAC-Net \;\textnormal{(\citehl{Lin et al.\ 2021})}}
 \textbf{Setting.}  Separable MFG, $H(x,\rho,p) = H_0(x,p) - f_0(x,\rho)$.
@@ -648,7 +648,7 @@ $\nu\Delta\varphi$, $H_0(\nabla\varphi)$, $f_0(\rho)$, and boundary terms.
 \end{itemize}
 
 \medskip
-\begin{recap}[title=The state of the art, before MFDGM]
+\begin{recap}[title={The state of the art, before MFDGM}]
 \begin{tabular}{lccc}
 & Non-sep.\ $H$ & $\rho$ representation & Convergence \\
 \midrule
@@ -663,7 +663,7 @@ APAC-Net / MFGAN & \xmark & \teal{distributional} & $\W_1$ \\
 %% =================================================================
 %%  PART 6 -- MFDGM
 %% =================================================================
-\section{Part 6 \;\textbar\; The paper: MFDGM}
+\section{\texorpdfstring{Part 6 \;\textbar\; The paper: MFDGM}{Part 6 | The paper: MFDGM}}
 
 \begin{frame}{MFDGM: the idea \;\textnormal{(\citehl{Assouline--Missaoui 2023})}}
 \begin{idea}[title=Key insight]
@@ -747,7 +747,7 @@ Two separate Adam optimisers, one per network.
 %% =================================================================
 %%  PART 7 -- CONVERGENCE
 %% =================================================================
-\section{Part 7 \;\textbar\; Convergence theory}
+\section{\texorpdfstring{Part 7 \;\textbar\; Convergence theory}{Part 7 | Convergence theory}}
 
 \begin{frame}{Universal approximation, recalled \;\textnormal{(\citehl{Hornik 1991})}}
 For activation function $\sigma \in C^2$, non-constant, and bounded,
@@ -862,7 +862,7 @@ Strengthening to $\W_2$ is what makes the bound \emph{geometrically meaningful}.
 %% =================================================================
 %%  PART 8 -- EXPERIMENTS
 %% =================================================================
-\section{Part 8 \;\textbar\; Numerical experiments}
+\section{\texorpdfstring{Part 8 \;\textbar\; Numerical experiments}{Part 8 | Numerical experiments}}
 
 \begin{frame}{Test 1: analytic separable benchmark}
 \textbf{Setup} (from \citehl{Lin et al.\ 2021}). For
@@ -972,7 +972,7 @@ matches classical traffic theory.
 %% =================================================================
 %%  PART 9 -- OUR WORK
 %% =================================================================
-\section{Part 9 \;\textbar\; Our contribution}
+\section{\texorpdfstring{Part 9 \;\textbar\; Our contribution}{Part 9 | Our contribution}}
 
 \begin{frame}{Where MFDGM leaves a gap}
 \begin{center}
