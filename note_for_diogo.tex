@@ -97,6 +97,21 @@ When $\eps=0$, the effective Hamiltonian is independent of the previous density,
   K \sim \frac{\log(1/\delta)}{\log(1/\kappa_\eps)}.
 \]
 
+\subsection*{Remark: the role of \texorpdfstring{$\eps$}{eps}}
+
+It is important to be clear about the role of the parameter $\eps$ and of the word \emph{weakly} in the title.
+
+The freeze-$\rho$ step of the algorithm is well defined for \emph{any} non-separable Hamiltonian: once $\rho^k$ is fixed inside the residual, $H^k(x,p)$ is automatically a function of $(x,p)$ only, and any separable inner solver can be applied. There is no structural obstruction to running the scheme on a fully non-separable problem.
+
+The role of $\eps$ is therefore not algorithmic; it is about \emph{convergence of the outer fixed-point map}. The smallness condition $\eps L_R<\lambda$ (in the density-only case, with the obvious analogue in general) is what ensures that the map
+\[
+  \mathcal{T}: \bar\rho \;\longmapsto\;
+  \rho \;=\; \text{density component of the separable MFG with frozen}\ \bar\rho
+\]
+is a contraction in $L^2$. Without such a smallness condition, $\mathcal{T}$ may fail to be contractive: the outer iteration is still well defined, but it can oscillate or grow geometrically rather than converge. This is shown explicitly in the bilinear example of Section~4, where the linearized outer map has operator norm $\eps|1-\eps|/\lambda$, exceeding one as soon as $\eps L_R\geq\lambda$.
+
+In short, the word \emph{weakly} refers to a convergence condition on the outer map. It is not a structural restriction on the underlying MFG and does not exclude any particular Hamiltonian a priori; it simply identifies the regime in which the outer fixed-point iteration is guaranteed to converge with the explicit rate stated below.
+
 \section{Convergence result}
 
 \subsection{Assumptions}
